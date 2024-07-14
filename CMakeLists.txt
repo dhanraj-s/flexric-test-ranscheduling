@@ -89,12 +89,14 @@ endif()
 
 if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   # using Clang
-  add_compile_options("-fblocks;")
-  add_link_options("-lBlocksRuntime;")
-
-  if(${SANITIZER} STREQUAL "ADDRESS")
-    message(FATAL_ERROR "ASan not supported by CLANG as FlexRIC uses blocks e.g., defer. Use gcc or unselect the sanitizer")
+  find_library(BLOCKS_RUNTIME_LIBRARY BlocksRuntime)
+  if(NOT BLOCKS_RUNTIME_LIBRARY)
+    message(FATAL_ERROR "\
+    BlocksRuntime library not found.
+    Installation on ubuntu: sudo apt-get install libblocksruntime-dev
+    Installation on fedora: sudo dnf install libblocksruntime-devel")
   endif()
+  add_link_options("-lBlocksRuntime")
 endif()
 
 
