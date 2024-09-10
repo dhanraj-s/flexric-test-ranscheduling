@@ -43,7 +43,7 @@ gitlabMergeRequestLink = ''
 DH_Account = "oaisoftwarealliance"
 
 // Private Local Registry URL
-PrivateRegistryURL = 'selfix.sboai.cs.eurecom.fr'
+PrivateRegistryURL = 'porcepix.sboai.cs.eurecom.fr'
 
 //-------------------------------------------------------------------------------
 // Pipeline start
