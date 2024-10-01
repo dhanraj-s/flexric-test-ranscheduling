@@ -82,6 +82,9 @@ RUN git clone https://github.com/swig/swig.git && \
     ldconfig
 
 FROM oai-flexric-base as oai-flexric-builder
+ARG E2AP_VERSION=E2AP_V3
+ARG KPM_VERSION=KPM_V3_00
+
 WORKDIR /flexric
 
 COPY . .
@@ -90,6 +93,8 @@ RUN mkdir build && \
     cd build && \
     scl enable gcc-toolset-12 "\
     cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
+          -DE2AP_VERSION=$E2AP_VERSION \
+          -DKPM_VERSION=$KPM_VERSION \
           -DCMAKE_C_FLAGS_RELEASE='-O3' \
           -DCMAKE_CXX_FLAGS_RELEASE='-O3' .. && \
     ninja && \
@@ -108,6 +113,7 @@ ENV TZ=Europe/Paris
 
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
+
 # Copy the subscription manager configurations
 COPY ./rhsm-conf /etc/rhsm
 COPY ./rhsm-ca /etc/rhsm/ca
