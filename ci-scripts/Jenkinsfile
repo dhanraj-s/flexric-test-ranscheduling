@@ -146,6 +146,12 @@ pipeline {
                   sh "docker login -u oaicicd -p oaicicd ${PrivateRegistryURL}"
                   sh "docker image tag oai-flexric:${flexric_tag} ${PrivateRegistryURL}/oai-flexric:${flexric_tag}"
                   sh "docker push ${PrivateRegistryURL}/oai-flexric:${flexric_tag}"
+                  // Pushing a develop tagged image for CI test purpose
+                  if ("PUSH".equals(env.gitlabActionType)) {
+                    sh "docker image tag oai-flexric:${flexric_tag} ${PrivateRegistryURL}/oai-flexric:develop"
+                    sh "docker push ${PrivateRegistryURL}/oai-flexric:develop"
+                    sh "docker rmi ${PrivateRegistryURL}/oai-flexric:develop"
+                  }
                   // Remove all images locally
                   sh "docker rmi oai-flexric:${flexric_tag} ${PrivateRegistryURL}/oai-flexric:${flexric_tag}"
                   sh "docker logout ${PrivateRegistryURL}"
