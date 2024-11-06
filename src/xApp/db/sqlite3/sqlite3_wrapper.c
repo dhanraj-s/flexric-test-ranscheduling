@@ -74,7 +74,7 @@ void create_mac_ue_table(sqlite3* db)
                        "ul_mcs1  INT CHECK(ul_mcs1 >= 0 AND ul_mcs1 < 256),"
                        "dl_mcs2  INT CHECK(dl_mcs2 >= 0 AND dl_mcs2 < 256),"
                        "ul_mcs2 INT CHECK(ul_mcs2 >= 0 AND ul_mcs2 < 256),"
-                       "phr INT CHECK(phr > -24 AND  phr < 41)," // −23 dB to +40 dB
+                       "phr INT CHECK(phr >= -128 AND  phr < 128),"
                        "bsr INT CHECK(bsr >= 0 AND  bsr < 4294967296),"
                        "dl_bler REAL CHECK(dl_bler  >= 0 AND dl_bler < 4294967296),"
                        "ul_bler REAL CHECK(ul_bler  >= 0 AND ul_bler < 4294967296),"
