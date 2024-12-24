@@ -227,17 +227,17 @@ Follow the instructions https://docs.srsran.com/projects/project/en/latest/tutor
 The nearRT-RIC has been successfully tested with Keysight's RICtest RAN emulator https://www.keysight.com/us/en/product/P8828S/rictest-ran-intelligent-controller-test-solutions.html, 
 as demonstrated at O-RAN PlugFest Fall 2023. Specifically, the nearRT-RIC with the xApp `flexric/examples/xApp/c/keysight/xapp_keysight_kpm_rc.c` were tested.
 
-### 3.4  Integration with ns3-oran RAN Simulator
+### 3.4  Integration with ns-O-RAN simulator
 
-Given the importance of obtaining an xApp testing environment relying on an open-source simulator, the Orange Innovation Egypt team integrates nearRT-RIC with [ns3-oran RAN simulator](https://openrangym.com/tutorials/ns-o-ran). The setup environment diagram is represented below: 
+Developed by WIoT at Northeastern University, [ns-O-RAN](https://openrangym.com/ran-frameworks/ns-o-ran) is the first open source simulation platform that combines [a functional 4G/5G protocol stack in ns-3](https://github.com/nyuwireless-unipd/ns3-mmwave) with an [O-RAN-compliant E2 interface](https://gerrit.o-ran-sc.org/r/admin/repos/sim/ns3-o-ran-e2,general).
+
+Recognizing the critical role of the ns-O-RAN simulator, the Orange Innovation Egypt team successfully integrated the OAI nearRT-RIC with this simulator, resulting in the creation of a new xApp testing framework named [ns-O-RAN-flexric](https://github.com/Orange-OpenSource/ns-O-RAN-flexric/). A summary of the enhancements made to each repository is illustrated in the diagram below:
 
 ![alt text](fig/6.png). 
 
-The simulator has been updated and enhanced to support E2AP v1.01, KPM v3 and pre-RC v1.01. This setup is tested with the xApp `/build/examples/xApp/c/kpm_rc/xapp_kpm_rc`with different scenarios. Follow the instruction to install ns-O-RAN-flexric https://github.com/Orange-OpenSource/ns-O-RAN-flexric/. The enhancement summary for each repo is presented in the diagram below: 
+The simulator has been updated and enhanced to support E2AP v1.01, KPM v3.00, and RC v1.03. This framework has been tested with the `/build/examples/xApp/c/kpm_rc/xapp_kpm_rc` xApp with different scenarios.
 
-![alt text](fig/7.png)
-
-### 3.4 (opt) Synchronize clock
+### 3.5 (opt) Synchronize clock
 
 Before running the various components (RAN/nearRT-RIC/xApps), you probably want to align the machines' clock. For this aim, you can use `ptp4l` in all the machines
 involved (if you have for example deployed the various components on different hosts)
