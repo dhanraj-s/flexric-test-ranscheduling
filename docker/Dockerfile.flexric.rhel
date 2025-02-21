@@ -33,10 +33,6 @@ ENV TZ=Europe/Paris
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
 
-# Copy the subscription manager configurations
-COPY ./rhsm-conf /etc/rhsm
-COPY ./rhsm-ca /etc/rhsm/ca
-
 #install developers pkg/repo
 RUN rm -f /etc/rhsm-host && \
     subscription-manager repos --enable codeready-builder-for-rhel-9-x86_64-rpms && \
@@ -68,8 +64,7 @@ RUN rm -f /etc/rhsm-host && \
     echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
     # Remove entitlements and Subscription Manager configs
-    rm -rf /etc/pki/entitlement && \
-    rm -rf /etc/rhsm
+    rm -rf /etc/pki/entitlement
 
 RUN git clone https://github.com/swig/swig.git && \
     cd swig && \
@@ -115,8 +110,7 @@ ENV TZ=Europe/Paris
 COPY ./etc-pki-entitlement /etc/pki/entitlement
 
 # Copy the subscription manager configurations
-COPY ./rhsm-conf /etc/rhsm
-COPY ./rhsm-ca /etc/rhsm/ca
+COPY --from=oai-flexric-base /etc/rhsm /etc/rhsm
 
 #install pkg/repo needed to run
 RUN  rm -f /etc/rhsm-host && \
