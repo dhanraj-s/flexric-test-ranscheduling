@@ -18,12 +18,6 @@ void free_rc_sm(void)
 }
 
 
-typedef enum {
-  RRC_STATE_CHANGED_TO_E2SM_RC_RAN_PARAM_ID = 202,   // 8.2.4  RAN Parameters for Report Service Style 4
-
-  END_E2SM_RC_RAN_PARAM_ID
-} ran_param_id_e;
-
 bool read_rc_sm(void* data)
 {
   assert(data != NULL);
@@ -96,7 +90,7 @@ seq_ran_param_3_t fill_rc_ran_param(void)
   // Mandatory
   // 9.3.8
   // [1- 4294967295]
-  ran_param.id = RRC_STATE_CHANGED_TO_E2SM_RC_RAN_PARAM_ID;
+  ran_param.id = E2SM_RC_RS4_RRC_STATE_CHANGED_TO;
 
   // RAN Parameter Name
   // Mandatory

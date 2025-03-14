@@ -31,12 +31,6 @@
 #include <signal.h>
 #include <pthread.h>
 
-typedef enum {
-  RRC_STATE_CHANGED_TO_E2SM_RC_RAN_PARAM_ID = 202, // 8.2.4  RAN Parameters for Report Service Style 4
-
-  END_E2SM_RC_RAN_PARAM_ID
-} ran_param_id_e;
-
 static
 pthread_mutex_t mtx;
 
@@ -88,25 +82,25 @@ log_ue_id log_ue_id_e2sm[END_UE_ID_E2SM] = {
 
 // Print integer value
 static
-void log_int_ran_param_value(int64_t value)
+void log_int_ran_param_value_rrc_state(int64_t value)
 {
   if (value == RRC_CONNECTED_RRC_STATE_E2SM_RC) {
-    printf("RAN Parameter Value = RRC_Connected\n");
+    printf("RAN Parameter Value = RRC connected\n");
   } else if (value == RRC_INACTIVE_RRC_STATE_E2SM_RC) {
-    printf("RAN Parameter Value = RRC_Inactive\n");
+    printf("RAN Parameter Value = RRC inactive\n");
   } else if (value == RRC_IDLE_RRC_STATE_E2SM_RC) {
-    printf("RAN Parameter Value = RRC_Idle\n");
+    printf("RAN Parameter Value = RRC idle\n");
   }
 }
 
 static
-void log_element_ran_param_value(ran_parameter_value_t* param_value)
+void log_element_ran_param_value(const e2sm_rc_ind_hdr_frmt_1_t *hdr, ran_parameter_value_t* param_value, uint32_t id)
 {
   assert(param_value != NULL);
 
   switch (param_value->type) {
     case INTEGER_RAN_PARAMETER_VALUE:
-      log_int_ran_param_value(param_value->int_ran);
+      log_int_ran_param_value_rrc_state(param_value->int_ran);
       break;
 
     default:
@@ -115,35 +109,28 @@ void log_element_ran_param_value(ran_parameter_value_t* param_value)
 }
 
 static
-void log_ran_param_name(uint32_t id)
+void log_ran_param_name_frmt_2(uint32_t id)
 {
   switch (id) {
-    case RRC_STATE_CHANGED_TO_E2SM_RC_RAN_PARAM_ID:
+    case E2SM_RC_RS4_RRC_STATE_CHANGED_TO:
       printf("RAN Parameter Name = RRC State Changed To\n");
       break;
 
     default:
-      printf("Add corresponding RAN Parameter ID\n");
+      printf("Add corresponding RAN Parameter ID for REPORT Service Style 4\n");
   }
 }
 
 static
-void sm_cb_rc(sm_ag_if_rd_t const* rd)
+void log_ind_1_2(const e2sm_rc_ind_hdr_frmt_1_t *hdr, const e2sm_rc_ind_msg_frmt_2_t* msg)
 {
-  assert(rd != NULL);
-  assert(rd->type == INDICATION_MSG_AGENT_IF_ANS_V0);
+  assert(hdr != NULL);
 
-  // Reading Indication Message Format 2
-  e2sm_rc_ind_msg_frmt_2_t const* ind_msg_frmt_2 = &rd->ind.rc.ind.msg.frmt_2;
-
-  static int counter = 1;
   {
     lock_guard(&mtx);
 
-    printf("\n%7d RC Indication Message\n", counter);
-
-    for (size_t i = 0; i < ind_msg_frmt_2->sz_seq_ue_id; i++) {
-      seq_ue_id_t* const ue_id_item = &ind_msg_frmt_2->seq_ue_id[i];
+    for (size_t i = 0; i < msg->sz_seq_ue_id; i++) {
+      seq_ue_id_t* const ue_id_item = &msg->seq_ue_id[i];
 
       ue_id_e2sm_e const ue_id_type = ue_id_item->ue_id.type;
       log_ue_id ue_id_logger = log_ue_id_e2sm[ue_id_type];
@@ -157,15 +144,16 @@ void sm_cb_rc(sm_ag_if_rd_t const* rd)
       for (size_t j = 0; j < ue_id_item->sz_seq_ran_param; j++) {
         seq_ran_param_t* const ran_param_item = &ue_id_item->seq_ran_param[j];
 
-        log_ran_param_name(ran_param_item->ran_param_id);
+        log_ran_param_name_frmt_2(ran_param_item->ran_param_id);
+        printf("RAN Parameter ID is: %d\n", ran_param_item->ran_param_id);
 
         switch (ran_param_item->ran_param_val.type) {
           case ELEMENT_KEY_FLAG_FALSE_RAN_PARAMETER_VAL_TYPE:
-            log_element_ran_param_value(ran_param_item->ran_param_val.flag_false);
+            log_element_ran_param_value(hdr, ran_param_item->ran_param_val.flag_false, ran_param_item->ran_param_id);
             break;
 
           case ELEMENT_KEY_FLAG_TRUE_RAN_PARAMETER_VAL_TYPE:
-            log_element_ran_param_value(ran_param_item->ran_param_val.flag_true);
+            log_element_ran_param_value(hdr, ran_param_item->ran_param_val.flag_true, ran_param_item->ran_param_id);
             break;
 
           default:
@@ -173,9 +161,28 @@ void sm_cb_rc(sm_ag_if_rd_t const* rd)
         }
       }
     }
-
-    counter++;
   }
+}
+
+static
+void sm_cb_rc(sm_ag_if_rd_t const* rd)
+{
+  assert(rd != NULL);
+  assert(rd->type == INDICATION_MSG_AGENT_IF_ANS_V0);
+
+  static int counter = 1;
+  printf("\n%7d RC Indication Message received:\n", counter);
+
+  // log properly INDICATION formats
+  const e2sm_rc_ind_hdr_format_e hdr_type = rd->ind.rc.ind.hdr.format;
+  const e2sm_rc_ind_msg_format_e msg_type = rd->ind.rc.ind.msg.format;
+  if (hdr_type == FORMAT_1_E2SM_RC_IND_HDR && msg_type == FORMAT_2_E2SM_RC_IND_MSG) {
+    log_ind_1_2(&rd->ind.rc.ind.hdr.frmt_1, &rd->ind.rc.ind.msg.frmt_2);
+  } else {
+    printf("Unknown RIC indication message received.\n");
+  }
+
+  counter++;
 }
 
 static
@@ -262,47 +269,48 @@ param_report_def_t fill_param_report(uint32_t const ran_param_id, ran_param_def_
 }
 
 static
-rc_sub_data_t gen_rc_sub_msg(ran_func_def_report_t const* ran_func)
+rc_sub_data_t* gen_rc_sub_msg(const seq_report_sty_t *report_sty)
 {
-  assert(ran_func != NULL);
+  assert(report_sty != NULL);
 
-  rc_sub_data_t rc_sub = {0};
+  rc_sub_data_t *rc_sub = calloc(1, sizeof(*rc_sub));
+  assert(rc_sub != NULL && "Memory exhausted");
 
-  for (size_t i = 0; i < ran_func->sz_seq_report_sty; i++) {
-    // as defined in section 7.4.5, formats used for SUBSCRIPTION msg are known
-    assert(cmp_str_ba("UE Information", ran_func->seq_report_sty[i].name) == 0 && "Add requested REPORT Style. At the moment, only UE Information supported");
-    
-    size_t const sz = ran_func->seq_report_sty[i].sz_seq_ran_param;
+  if (cmp_str_ba("UE Information", report_sty->name) == 0) {  // as defined in section 7.4.5, formats used for SUBSCRIPTION msg are known
+    size_t const sz = report_sty->sz_seq_ran_param;
 
     // Generate Event Trigger
-    rc_sub.et.format = ran_func->seq_report_sty[i].ev_trig_type;
-    assert(rc_sub.et.format == FORMAT_4_E2SM_RC_EV_TRIGGER_FORMAT && "Event Trigger Format received not valid");
-    rc_sub.et.frmt_4.sz_ue_info_chng = sz;
-    rc_sub.et.frmt_4.ue_info_chng = calloc(sz, sizeof(ue_info_chng_t));
-    assert(rc_sub.et.frmt_4.ue_info_chng != NULL && "Memory exhausted");
+    rc_sub->et.format = report_sty->ev_trig_type;
+    assert(rc_sub->et.format == FORMAT_4_E2SM_RC_EV_TRIGGER_FORMAT && "Event Trigger Format received not valid");
+    rc_sub->et.frmt_4.sz_ue_info_chng = sz;
+    rc_sub->et.frmt_4.ue_info_chng = calloc(sz, sizeof(ue_info_chng_t));
+    assert(rc_sub->et.frmt_4.ue_info_chng != NULL && "Memory exhausted");
 
     // Generate Action Definition
-    rc_sub.sz_ad = 1;
-    rc_sub.ad = calloc(rc_sub.sz_ad, sizeof(e2sm_rc_action_def_t));
-    assert(rc_sub.ad != NULL && "Memory exhausted");
-    rc_sub.ad[0].ric_style_type = 4; // REPORT Service Style 4: UE Information
-    rc_sub.ad[0].format = ran_func->seq_report_sty[i].act_frmt_type;
-    assert(rc_sub.ad[0].format == FORMAT_1_E2SM_RC_ACT_DEF && "Action Definition Format received not valid");
-    rc_sub.ad[0].frmt_1.sz_param_report_def = sz;
-    rc_sub.ad[0].frmt_1.param_report_def = calloc(sz, sizeof(param_report_def_t));
-    assert(rc_sub.ad[0].frmt_1.param_report_def != NULL && "Memory exhausted");
+    rc_sub->sz_ad = 1;
+    rc_sub->ad = calloc(rc_sub->sz_ad, sizeof(e2sm_rc_action_def_t));
+    assert(rc_sub->ad != NULL && "Memory exhausted");
+    rc_sub->ad[0].ric_style_type = 4; // REPORT Service Style 4: UE Information
+    rc_sub->ad[0].format = report_sty->act_frmt_type;
+    assert(rc_sub->ad[0].format == FORMAT_1_E2SM_RC_ACT_DEF && "Action Definition Format received not valid");
+    rc_sub->ad[0].frmt_1.sz_param_report_def = sz;
+    rc_sub->ad[0].frmt_1.param_report_def = calloc(sz, sizeof(param_report_def_t));
+    assert(rc_sub->ad[0].frmt_1.param_report_def != NULL && "Memory exhausted");
 
     // Fill RAN Parameter Info
     for (size_t j = 0; j < sz; j++) {
-      assert(cmp_str_ba("RRC State", ran_func->seq_report_sty[i].ran_param[j].name) == 0 && "Add requested RAN Parameter. At the moment, only RRC State supported");
+      if (cmp_str_ba("RRC State Changed To", report_sty->ran_param[j].name) != 0) {
+        printf("Received \"%s\" RAN Parameter ID. Expected \"RRC State Changed To\". No RIC SUBSCRIPTION sent.\n", report_sty->ran_param[j].name.buf);
+        return NULL;
+      }
 
       ue_info_chng_trigger_type_e const trigger_type = RRC_STATE_UE_INFO_CHNG_TRIGGER_TYPE;
-      uint32_t const ran_param_id = ran_func->seq_report_sty[i].ran_param[j].id;
-      ran_param_def_t const* ran_param_def = ran_func->seq_report_sty[i].ran_param[j].def;
+      uint32_t const ran_param_id = report_sty->ran_param[j].id;
+      ran_param_def_t const* ran_param_def = report_sty->ran_param[j].def;
       // Fill Event Trigger
-      rc_sub.et.frmt_4.ue_info_chng[j] = fill_ue_info_chng(trigger_type);
+      rc_sub->et.frmt_4.ue_info_chng[j] = fill_ue_info_chng(trigger_type);
       // Fill Action Definition
-      rc_sub.ad[0].frmt_1.param_report_def[j] = fill_param_report(ran_param_id, ran_param_def);
+      rc_sub->ad[0].frmt_1.param_report_def[j] = fill_param_report(ran_param_id, ran_param_def);
     }
   }
 
@@ -329,6 +337,17 @@ size_t find_sm_idx(sm_ran_function_t* rf, size_t sz, bool (*f)(sm_ran_function_t
   assert(0 != 0 && "SM ID could not be found in the RAN Function List");
 }
 
+static ran_func_def_report_t *get_rc_report_cap(const e2_node_connected_xapp_t *n, const int RC_ran_function)
+{
+  size_t const idx = find_sm_idx(n->rf, n->len_rf, eq_sm, RC_ran_function);
+  if (n->rf[idx].defn.type != RC_RAN_FUNC_DEF_E) {
+    printf("E2 node does not support RAN Control SM.\n");
+    return NULL;
+  }
+
+  return n->rf[idx].defn.rc.report;
+}
+
 int main(int argc, char* argv[])
 {
   fr_args_t args = init_fr_args(argc, argv);
@@ -349,7 +368,7 @@ int main(int argc, char* argv[])
   assert(rc == 0);
 
   // RAN Control REPORT handle
-  sm_ans_xapp_t* hndl = calloc(nodes.len, sizeof(sm_ans_xapp_t));
+  sm_ans_xapp_t** hndl = (sm_ans_xapp_t**)calloc(nodes.len, sizeof(sm_ans_xapp_t*));
   assert(hndl != NULL);
 
   ////////////
@@ -359,18 +378,24 @@ int main(int argc, char* argv[])
 
   for (int i = 0; i < nodes.len; i++) {
     e2_node_connected_xapp_t* n = &nodes.n[i];
-
-    size_t const idx = find_sm_idx(n->rf, n->len_rf, eq_sm, RC_ran_function);
-    assert(n->rf[idx].defn.type == RC_RAN_FUNC_DEF_E && "RC is not the received RAN Function");
+    ran_func_def_report_t *rc_report = get_rc_report_cap(n, RC_ran_function);
     // if REPORT Service is supported by E2 node, send SUBSCRIPTION message
-    if (n->rf[idx].defn.rc.report != NULL) {
-      // Generate RC SUBSCRIPTION message
-      rc_sub_data_t rc_sub = gen_rc_sub_msg(n->rf[idx].defn.rc.report);
+    if (rc_report != NULL) {
+      // Generate RC SUBSCRIPTION messages
+      const size_t sz_report_styles = rc_report->sz_seq_report_sty;
+      hndl[i] = calloc(sz_report_styles, sizeof(sm_ans_xapp_t));
+      assert(hndl[i] != NULL);
 
-      hndl[i] = report_sm_xapp_api(&n->id, RC_ran_function, &rc_sub, sm_cb_rc);
-      assert(hndl[i].success == true);
+      for (size_t j = 0; j < sz_report_styles; j++) {
+        rc_sub_data_t *rc_sub = gen_rc_sub_msg(&rc_report->seq_report_sty[j]);
 
-      free_rc_sub_data(&rc_sub);
+        if (rc_sub) {
+          hndl[i][j] = report_sm_xapp_api(&n->id, RC_ran_function, &rc_sub, sm_cb_rc);
+          assert(hndl[i][j].success == true);
+          free_rc_sub_data(rc_sub);
+          free(rc_sub);
+        }
+      }
     }
   }
   ////////////
@@ -379,10 +404,16 @@ int main(int argc, char* argv[])
 
   sleep(20);
 
-  for (int i = 0; i < nodes.len; ++i) {
+  for (int i = 0; i < nodes.len; i++) {
     // Remove the handle previously returned
-    if (hndl[i].success == true)
-      rm_report_sm_xapp_api(hndl[i].u.handle);
+    e2_node_connected_xapp_t* n = &nodes.n[i];
+    ran_func_def_report_t *rc_report = get_rc_report_cap(n, RC_ran_function);
+    if (rc_report != NULL) {
+      for (size_t j = 0; j < rc_report->sz_seq_report_sty; j++) {
+        if (hndl[i][j].success == true)
+          rm_report_sm_xapp_api(hndl[i][j].u.handle);
+      }
+    }
   }
   free(hndl);
 
