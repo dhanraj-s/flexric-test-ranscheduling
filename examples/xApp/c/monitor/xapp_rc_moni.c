@@ -35,6 +35,7 @@
 #include "NR_RRCReconfiguration.h"
 #include "NR_CellGroupConfig.h"
 #include "NR_UL-DCCH-Message.h"
+#include "../../../../src/lib/sm/dec/dec_ue_id.c"
 
 static
 pthread_mutex_t mtx;
@@ -148,7 +149,7 @@ void log_octet_str_ran_param_value(const e2sm_rc_ind_hdr_frmt_1_t *hdr, byte_arr
         printf("\nDecode and print CellGroupConfig message:\n");
         xer_fprint(stdout, &asn_DEF_NR_CellGroupConfig, cellGroupConfig);
         ASN_STRUCT_FREE(asn_DEF_NR_DL_DCCH_Message, msg);
-      } else if (*hdr->ev_trigger_id == 2 || *hdr->ev_trigger_id == 3) {
+      } else if (*hdr->ev_trigger_id == 2 || *hdr->ev_trigger_id == 3 || *hdr->ev_trigger_id == 4) {
         printf("\nDecode and print UL-DCCH message:\n");
         NR_UL_DCCH_Message_t *msg = NULL;
         asn_dec_rval_t dec_rval = uper_decode(NULL, &asn_DEF_NR_UL_DCCH_Message,
@@ -168,8 +169,31 @@ void log_octet_str_ran_param_value(const e2sm_rc_ind_hdr_frmt_1_t *hdr, byte_arr
       }
       break;
 
+    case E2SM_RC_RS1_UE_ID:
+      if (*hdr->ev_trigger_id == 4) {
+        printf("\"RRC Setup Complete\" message detected\n");
+      } else if (*hdr->ev_trigger_id == 5) {
+        printf("\"F1\" message detected\n");
+      }
+      UEID_t ue_id_asn = {0};
+      defer({ ASN_STRUCT_RESET(asn_DEF_UEID, &ue_id_asn); });
+      UEID_t* src_ref = &ue_id_asn;
+
+      asn_dec_rval_t const ret = aper_decode(NULL, &asn_DEF_UEID, (void **)&src_ref, octet_str.buf, octet_str.len, 0, 0);
+      assert(ret.code == RC_OK);
+
+      ue_id_e2sm_t ue_id = dec_ue_id_asn(&ue_id_asn);
+      ue_id_e2sm_e const ue_id_type = ue_id.type;
+      log_ue_id ue_id_logger = log_ue_id_e2sm[ue_id_type];
+      if (ue_id_logger) {
+        ue_id_logger(ue_id);
+      } else {
+        printf("UE ID type %d logging not implemented\n", ue_id_type);
+      }
+      break;
+
     default:
-      printf("Only decoding for RRC Message is supported!\n");
+      printf("Only decoding for RRC Message and UE ID is supported!\n");
   }
 }
 
@@ -198,6 +222,10 @@ void log_ran_param_name_frmt_1(uint32_t id)
   switch (id) {
     case E2SM_RC_RS1_RRC_MESSAGE:
       printf("RAN Parameter Name = RRC Message\n");
+      break;
+
+    case E2SM_RC_RS1_UE_ID:
+      printf("RAN Parameter Name = UE ID\n");
       break;
 
     default:
@@ -411,6 +439,29 @@ rrc_msg_id_t fill_rrc_msg_id_3(const nr_rrc_class_e nr_class, const uint32_t msg
 }
 
 static
+network_interface_e2rc_t fill_ni_msg_id_3(const network_interface_type_e class)
+{
+  network_interface_e2rc_t net = {0};
+
+  // NI Type
+  // Mandatory
+  // 9.3.32
+  net.ni_type = class;
+
+  // NI Identifier
+  // Optional
+  // 9.3.33
+  net.ni_id = NULL;
+
+  // NI Message
+  // Optional
+  // 9.3.34
+  net.ni_msg_id = NULL;
+
+  return net;
+}
+
+static
 msg_ev_trg_t fill_msg_ev_trig_3(msg_type_ev_trg_e const trigger_type, const uint16_t cond_id, const uint16_t class, const uint32_t msg_id)
 {
   msg_ev_trg_t msg_ev_trig = {0};
@@ -428,6 +479,8 @@ msg_ev_trg_t fill_msg_ev_trig_3(msg_type_ev_trg_e const trigger_type, const uint
 
   if (trigger_type == RRC_MSG_MSG_TYPE_EV_TRG) {
     msg_ev_trig.rrc_msg = fill_rrc_msg_id_3(class, msg_id);
+  } else if (trigger_type == NETWORK_INTERFACE_MSG_TYPE_EV_TRG) {
+    msg_ev_trig.net = fill_ni_msg_id_3(class);
   } else {
     assert(false && "Incorrect Trigger Type for Event Trigger Type 1!");
   }
@@ -476,7 +529,7 @@ rc_sub_data_t *gen_rc_sub_msg(const seq_report_sty_t *report_sty)
     assert(rc_sub->ad[0].frmt_1.param_report_def != NULL && "Memory exhausted");
 
     // Fill Event Trigger
-    const size_t msg_type_len = 3;
+    const size_t msg_type_len = 5;
     rc_sub->et.frmt_1.sz_msg_ev_trg = msg_type_len;
     rc_sub->et.frmt_1.msg_ev_trg = calloc(msg_type_len, sizeof(msg_ev_trg_t));
     assert(rc_sub->et.frmt_1.msg_ev_trg != NULL && "Memory exhausted");
@@ -486,10 +539,14 @@ rc_sub_data_t *gen_rc_sub_msg(const seq_report_sty_t *report_sty)
     rc_sub->et.frmt_1.msg_ev_trg[1] = fill_msg_ev_trig_3(RRC_MSG_MSG_TYPE_EV_TRG, 2, UL_DCCH_NR_RRC_CLASS, 1);  // measurementReport
     rc_sub->et.frmt_1.msg_ev_trg[2] = fill_msg_ev_trig_3(RRC_MSG_MSG_TYPE_EV_TRG, 3, UL_DCCH_NR_RRC_CLASS, 6);  // securityModeComplete
 
+    // UE ID
+    rc_sub->et.frmt_1.msg_ev_trg[3] = fill_msg_ev_trig_3(RRC_MSG_MSG_TYPE_EV_TRG, 4, UL_DCCH_NR_RRC_CLASS, 3);  // rrcSetupComplete
+    rc_sub->et.frmt_1.msg_ev_trg[4] = fill_msg_ev_trig_3(NETWORK_INTERFACE_MSG_TYPE_EV_TRG, 5, F1_NETWORK_INTERFACE_TYPE, 0);  // "F1 UE Context Setup Request", but cannot chose this specific msg; this way, any F1 msg will provide UE ID
+
     // Fill RAN Parameter Info
     for (size_t j = 0; j < sz_1; j++) {
-      if (cmp_str_ba("RRC Message", report_sty->ran_param[j].name) != 0) {
-        printf("Received \"%s\" RAN Parameter ID. Expected \"RRC Message\". No RIC SUBSCRIPTION sent.\n", report_sty->ran_param[j].name.buf);
+      if (cmp_str_ba("RRC Message", report_sty->ran_param[j].name) != 0 && cmp_str_ba("UE ID", report_sty->ran_param[j].name) != 0) {
+        printf("Received \"%s\" RAN Parameter ID. Expected \"RRC Message\" or \"UE ID\". No RIC SUBSCRIPTION sent.\n", report_sty->ran_param[j].name.buf);
         return NULL;
       }
       uint32_t const ran_param_id = report_sty->ran_param[j].id;
