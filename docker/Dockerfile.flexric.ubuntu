@@ -69,6 +69,17 @@ RUN git clone https://github.com/swig/swig.git && \
     make install && \
     ldconfig
 
+RUN rm -rf /tmp/asn1c && \
+    git clone https://github.com/mouse07410/asn1c /tmp/asn1c && \
+    cd /tmp/asn1c && \
+    git checkout 940dd5fa9f3917913fd487b13dfddfacd0ded06e && \
+    # Showing which version is used
+    git log -n1 && \
+    autoreconf -iv && \
+    ./configure --prefix /opt/asn1c/ && \
+    make -j`nproc` && \
+    make install
+
 FROM oai-flexric-base as oai-flexric-builder
 ARG E2AP_VERSION=E2AP_V3
 ARG KPM_VERSION=KPM_V3_00
