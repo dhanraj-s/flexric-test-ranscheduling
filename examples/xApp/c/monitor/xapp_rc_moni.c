@@ -40,6 +40,52 @@ typedef enum {
 static
 pthread_mutex_t mtx;
 
+static
+void log_gnb_ue_id(ue_id_e2sm_t ue_id)
+{
+  if (ue_id.gnb.gnb_cu_ue_f1ap_lst != NULL) {
+    for (size_t i = 0; i < ue_id.gnb.gnb_cu_ue_f1ap_lst_len; i++) {
+      printf("UE ID type = gNB-CU, gnb_cu_ue_f1ap = %u\n", ue_id.gnb.gnb_cu_ue_f1ap_lst[i]);
+    }
+  } else {
+    printf("UE ID type = gNB, amf_ue_ngap_id = %lu\n", ue_id.gnb.amf_ue_ngap_id);
+  }
+  if (ue_id.gnb.ran_ue_id != NULL) {
+    printf("ran_ue_id = %lx\n", *ue_id.gnb.ran_ue_id); // RAN UE NGAP ID
+  }
+}
+
+static
+void log_du_ue_id(ue_id_e2sm_t ue_id)
+{
+  printf("UE ID type = gNB-DU, gnb_cu_ue_f1ap = %u\n", ue_id.gnb_du.gnb_cu_ue_f1ap);
+  if (ue_id.gnb_du.ran_ue_id != NULL) {
+    printf("ran_ue_id = %lx\n", *ue_id.gnb_du.ran_ue_id); // RAN UE NGAP ID
+  }
+}
+
+static
+void log_cuup_ue_id(ue_id_e2sm_t ue_id)
+{
+  printf("UE ID type = gNB-CU-UP, gnb_cu_cp_ue_e1ap = %u\n", ue_id.gnb_cu_up.gnb_cu_cp_ue_e1ap);
+  if (ue_id.gnb_cu_up.ran_ue_id != NULL) {
+    printf("ran_ue_id = %lx\n", *ue_id.gnb_cu_up.ran_ue_id); // RAN UE NGAP ID
+  }
+}
+
+typedef void (*log_ue_id)(ue_id_e2sm_t ue_id);
+
+static
+log_ue_id log_ue_id_e2sm[END_UE_ID_E2SM] = {
+    log_gnb_ue_id, // common for gNB-mono, CU and CU-CP
+    log_du_ue_id,
+    log_cuup_ue_id,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
 // Print integer value
 static
 void log_int_ran_param_value(int64_t value)
@@ -82,24 +128,6 @@ void log_ran_param_name(uint32_t id)
 }
 
 static
-void log_gnb_id_e2sm(gnb_e2sm_t* gnb)
-{
-  assert(gnb != NULL);
-
-  if (gnb->gnb_cu_ue_f1ap_lst != NULL) {
-    for (size_t j = 0; j < gnb->gnb_cu_ue_f1ap_lst_len; j++) {
-      printf("UE ID type = gNB-CU, gnb_cu_ue_f1ap = %u\n", gnb->gnb_cu_ue_f1ap_lst[j]);
-    }
-  } else if (gnb->gnb_cu_cp_ue_e1ap_lst != NULL) {
-    for (size_t j = 0; j < gnb->gnb_cu_cp_ue_e1ap_lst_len; j++) {
-      printf("UE ID type = gNB-CU-CP, gnb_cu_cp_ue_e1ap = %u\n", gnb->gnb_cu_cp_ue_e1ap_lst[j]);
-    }
-  } else {
-    printf("UE ID type = gNB, amf_ue_ngap_id = %lu\n", gnb->amf_ue_ngap_id);
-  }
-}
-
-static
 void sm_cb_rc(sm_ag_if_rd_t const* rd)
 {
   assert(rd != NULL);
@@ -117,13 +145,12 @@ void sm_cb_rc(sm_ag_if_rd_t const* rd)
     for (size_t i = 0; i < ind_msg_frmt_2->sz_seq_ue_id; i++) {
       seq_ue_id_t* const ue_id_item = &ind_msg_frmt_2->seq_ue_id[i];
 
-      switch (ue_id_item->ue_id.type) {
-        case GNB_UE_ID_E2SM:
-          log_gnb_id_e2sm(&ue_id_item->ue_id.gnb);
-          break;
-
-        default:
-          assert(false && "E2 Node Type not yet added\n");
+      ue_id_e2sm_e const ue_id_type = ue_id_item->ue_id.type;
+      log_ue_id ue_id_logger = log_ue_id_e2sm[ue_id_type];
+      if (ue_id_logger) {
+        ue_id_logger(ue_id_item->ue_id);
+      } else {
+        printf("UE ID type %d logging not implemented\n", ue_id_type);
       }
 
       // List parameters
