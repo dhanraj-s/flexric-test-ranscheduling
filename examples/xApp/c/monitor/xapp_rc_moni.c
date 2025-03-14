@@ -31,6 +31,11 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "NR_DL-DCCH-Message.h"
+#include "NR_RRCReconfiguration.h"
+#include "NR_CellGroupConfig.h"
+#include "NR_UL-DCCH-Message.h"
+
 static
 pthread_mutex_t mtx;
 
@@ -94,6 +99,81 @@ void log_int_ran_param_value_rrc_state(int64_t value)
 }
 
 static
+void log_meas_report(const NR_MeasResults_t *results)
+{
+  for (int i = 0; i < results->measResultServingMOList.list.count; i++) {
+    NR_MeasResultServMO_t *measresultservmo = results->measResultServingMOList.list.array[i];
+    NR_MeasResultNR_t *measresultnr = &measresultservmo->measResultServingCell;
+    NR_MeasQuantityResults_t *mqr = measresultnr->measResult.cellResults.resultsSSB_Cell;
+
+    if (mqr != NULL) {
+      const long rrsrp = *mqr->rsrp - 156;
+      const float rrsrq = (float) (*mqr->rsrq - 87) / 2.0f;
+      const float rsinr = (float) (*mqr->sinr - 46) / 2.0f;
+      printf("resultsSSB-Cell: RSRP %ld [dBm] RSRQ %.1f [dB] SINR %.1f [dB]\n", rrsrp, rrsrq, rsinr);
+    } else {
+      printf("resultsSSB-Cell: empty.\n");
+    }
+  }
+}
+
+//Print Octet String value
+static
+void log_octet_str_ran_param_value(const e2sm_rc_ind_hdr_frmt_1_t *hdr, byte_array_t octet_str, uint32_t id)
+{
+  switch (id) {
+    case E2SM_RC_RS1_RRC_MESSAGE:
+      if (*hdr->ev_trigger_id == 1) {
+        printf("\nDecode and print DL-DCCH message:\n");
+        NR_DL_DCCH_Message_t *msg = NULL;
+        asn_dec_rval_t dec_rval = uper_decode(NULL, &asn_DEF_NR_DL_DCCH_Message,
+                                          (void **)&msg, octet_str.buf, octet_str.len, 0, 0);
+        assert(dec_rval.code == RC_OK);
+        xer_fprint(stdout, &asn_DEF_NR_DL_DCCH_Message, msg);
+  
+        assert(msg->message.present == NR_DL_DCCH_MessageType_PR_c1);
+        assert(msg->message.choice.c1->present == NR_DL_DCCH_MessageType__c1_PR_rrcReconfiguration);
+        NR_RRCReconfiguration_t *reconfig = msg->message.choice.c1->choice.rrcReconfiguration;
+  
+        assert(reconfig->criticalExtensions.present == NR_RRCReconfiguration__criticalExtensions_PR_rrcReconfiguration);
+        NR_RRCReconfiguration_IEs_t *ies = reconfig->criticalExtensions.choice.rrcReconfiguration;
+        assert(ies->nonCriticalExtension != NULL);
+        assert(ies->nonCriticalExtension->masterCellGroup != NULL);
+        OCTET_STRING_t *binary_cellGroupConfig = ies->nonCriticalExtension->masterCellGroup;
+        NR_CellGroupConfig_t *cellGroupConfig = NULL;
+        dec_rval = uper_decode(NULL, &asn_DEF_NR_CellGroupConfig,
+                               (void **)&cellGroupConfig, binary_cellGroupConfig->buf,
+                               binary_cellGroupConfig->size, 0, 0);
+        assert(dec_rval.code == RC_OK);
+        printf("\nDecode and print CellGroupConfig message:\n");
+        xer_fprint(stdout, &asn_DEF_NR_CellGroupConfig, cellGroupConfig);
+        ASN_STRUCT_FREE(asn_DEF_NR_DL_DCCH_Message, msg);
+      } else if (*hdr->ev_trigger_id == 2 || *hdr->ev_trigger_id == 3) {
+        printf("\nDecode and print UL-DCCH message:\n");
+        NR_UL_DCCH_Message_t *msg = NULL;
+        asn_dec_rval_t dec_rval = uper_decode(NULL, &asn_DEF_NR_UL_DCCH_Message,
+                                          (void **)&msg, octet_str.buf, octet_str.len, 0, 0);
+        assert(dec_rval.code == RC_OK);
+        xer_fprint(stdout, &asn_DEF_NR_UL_DCCH_Message, msg);
+        assert(msg->message.present == NR_UL_DCCH_MessageType_PR_c1);
+        if (msg->message.choice.c1->present == NR_UL_DCCH_MessageType__c1_PR_measurementReport) {
+          NR_MeasResults_t *results = &msg->message.choice.c1->choice.measurementReport->criticalExtensions.choice.measurementReport->measResults;
+          if (results == NULL) {
+            printf("Received RRC MeasaurementReport message but no measurements are filled.\n");
+          } else {
+            log_meas_report(results);
+          }
+        }
+        ASN_STRUCT_FREE(asn_DEF_NR_UL_DCCH_Message, msg);
+      }
+      break;
+
+    default:
+      printf("Only decoding for RRC Message is supported!\n");
+  }
+}
+
+static
 void log_element_ran_param_value(const e2sm_rc_ind_hdr_frmt_1_t *hdr, ran_parameter_value_t* param_value, uint32_t id)
 {
   assert(param_value != NULL);
@@ -103,8 +183,54 @@ void log_element_ran_param_value(const e2sm_rc_ind_hdr_frmt_1_t *hdr, ran_parame
       log_int_ran_param_value_rrc_state(param_value->int_ran);
       break;
 
+    case OCTET_STRING_RAN_PARAMETER_VALUE:
+      log_octet_str_ran_param_value(hdr, param_value->octet_str_ran, id);
+      break;
+
     default:
-      printf("Add corresponding print function for the RAN Parameter Value (other than integer)\n");
+      printf("Add corresponding print function for the RAN Parameter Value (other than Integer and Octet string)\n");
+  }
+}
+
+static
+void log_ran_param_name_frmt_1(uint32_t id)
+{
+  switch (id) {
+    case E2SM_RC_RS1_RRC_MESSAGE:
+      printf("RAN Parameter Name = RRC Message\n");
+      break;
+
+    default:
+      printf("Add corresponding RAN Parameter ID for REPORT Service Style 1\n");
+  }
+}
+
+static
+void log_ind_1_1(const e2sm_rc_ind_hdr_frmt_1_t *hdr, const e2sm_rc_ind_msg_frmt_1_t* msg)
+{
+  {
+    lock_guard(&mtx);
+
+    // List parameters
+    for (size_t j = 0; j < msg->sz_seq_ran_param; j++) {
+      seq_ran_param_t* const ran_param_item = &msg->seq_ran_param[j];
+
+      log_ran_param_name_frmt_1(ran_param_item->ran_param_id);
+      printf("RAN Parameter ID = %d\n", ran_param_item->ran_param_id);
+
+      switch (ran_param_item->ran_param_val.type) {
+        case ELEMENT_KEY_FLAG_FALSE_RAN_PARAMETER_VAL_TYPE:
+          log_element_ran_param_value(hdr, ran_param_item->ran_param_val.flag_false, ran_param_item->ran_param_id);
+          break;
+
+        case ELEMENT_KEY_FLAG_TRUE_RAN_PARAMETER_VAL_TYPE:
+          log_element_ran_param_value(hdr, ran_param_item->ran_param_val.flag_true, ran_param_item->ran_param_id);
+          break;
+
+        default:
+          printf("Add corresponding function for the RAN Parameter Value Type (other than element)\n");
+      }
+    }
   }
 }
 
@@ -176,7 +302,9 @@ void sm_cb_rc(sm_ag_if_rd_t const* rd)
   // log properly INDICATION formats
   const e2sm_rc_ind_hdr_format_e hdr_type = rd->ind.rc.ind.hdr.format;
   const e2sm_rc_ind_msg_format_e msg_type = rd->ind.rc.ind.msg.format;
-  if (hdr_type == FORMAT_1_E2SM_RC_IND_HDR && msg_type == FORMAT_2_E2SM_RC_IND_MSG) {
+  if (hdr_type == FORMAT_1_E2SM_RC_IND_HDR && msg_type == FORMAT_1_E2SM_RC_IND_MSG) {
+    log_ind_1_1(&rd->ind.rc.ind.hdr.frmt_1, &rd->ind.rc.ind.msg.frmt_1);
+  } else if (hdr_type == FORMAT_1_E2SM_RC_IND_HDR && msg_type == FORMAT_2_E2SM_RC_IND_MSG) {
     log_ind_1_2(&rd->ind.rc.ind.hdr.frmt_1, &rd->ind.rc.ind.msg.frmt_2);
   } else {
     printf("Unknown RIC indication message received.\n");
@@ -269,14 +397,108 @@ param_report_def_t fill_param_report(uint32_t const ran_param_id, ran_param_def_
 }
 
 static
-rc_sub_data_t* gen_rc_sub_msg(const seq_report_sty_t *report_sty)
+rrc_msg_id_t fill_rrc_msg_id_3(const nr_rrc_class_e nr_class, const uint32_t msg_id)
+{
+  rrc_msg_id_t rrc_msg_id = {0};
+
+  // CHOICE RRC Message Type
+  rrc_msg_id.type = NR_RRC_MESSAGE_ID;
+
+  rrc_msg_id.nr = nr_class; // RRC Message Class
+  rrc_msg_id.rrc_msg_id = msg_id; // RRC Message ID
+
+  return rrc_msg_id;
+}
+
+static
+msg_ev_trg_t fill_msg_ev_trig_3(msg_type_ev_trg_e const trigger_type, const uint16_t cond_id, const uint16_t class, const uint32_t msg_id)
+{
+  msg_ev_trg_t msg_ev_trig = {0};
+
+  //  Event Trigger Condition ID
+  //  Mandatory
+  //  9.3.21
+  msg_ev_trig.ev_trigger_cond_id = cond_id; // this parameter contains rnd value, but must be matched in ind hdr
+  /* For each information change configured, Event Trigger Condition ID is assigned
+  so that E2 Node can reply to Near-RT RIC in the RIC INDICATION message to inform
+  which event(s) are the cause for triggering. */
+
+  // CHOICE Trigger Type
+  msg_ev_trig.msg_type = trigger_type;
+
+  if (trigger_type == RRC_MSG_MSG_TYPE_EV_TRG) {
+    msg_ev_trig.rrc_msg = fill_rrc_msg_id_3(class, msg_id);
+  } else {
+    assert(false && "Incorrect Trigger Type for Event Trigger Type 1!");
+  }
+
+  // Message Direction
+  // Optional
+  msg_ev_trig.msg_dir = NULL;
+
+  // Associated UE Info
+  // Optional
+  // 9.3.26
+  msg_ev_trig.assoc_ue_info = NULL;
+
+  // Logical OR
+  // Optional
+  // 9.3.25
+  msg_ev_trig.log_or = NULL;
+
+  return msg_ev_trig;
+}
+
+static
+rc_sub_data_t *gen_rc_sub_msg(const seq_report_sty_t *report_sty)
 {
   assert(report_sty != NULL);
 
   rc_sub_data_t *rc_sub = calloc(1, sizeof(*rc_sub));
   assert(rc_sub != NULL && "Memory exhausted");
 
-  if (cmp_str_ba("UE Information", report_sty->name) == 0) {  // as defined in section 7.4.5, formats used for SUBSCRIPTION msg are known
+  if (cmp_str_ba("Message Copy", report_sty->name) == 0) {  // as defined in section 7.4.2, formats used for SUBSCRIPTION msg are known
+    size_t const sz_1 = report_sty->sz_seq_ran_param;
+
+    // Generate Event Trigger
+    rc_sub->et.format = report_sty->ev_trig_type;
+    assert(rc_sub->et.format == FORMAT_1_E2SM_RC_EV_TRIGGER_FORMAT && "Event Trigger Format received not valid");
+
+    // Generate Action Definition
+    rc_sub->sz_ad = 1;
+    rc_sub->ad = calloc(rc_sub->sz_ad, sizeof(e2sm_rc_action_def_t));
+    assert(rc_sub->ad != NULL && "Memory exhausted");
+    rc_sub->ad[0].ric_style_type = 1; // REPORT Service Style 1: Message Copy
+    rc_sub->ad[0].format = report_sty->act_frmt_type;
+    assert(rc_sub->ad[0].format == FORMAT_1_E2SM_RC_ACT_DEF && "Action Definition Format received not valid");
+    rc_sub->ad[0].frmt_1.sz_param_report_def = sz_1;
+    rc_sub->ad[0].frmt_1.param_report_def = calloc(sz_1, sizeof(param_report_def_t));
+    assert(rc_sub->ad[0].frmt_1.param_report_def != NULL && "Memory exhausted");
+
+    // Fill Event Trigger
+    const size_t msg_type_len = 3;
+    rc_sub->et.frmt_1.sz_msg_ev_trg = msg_type_len;
+    rc_sub->et.frmt_1.msg_ev_trg = calloc(msg_type_len, sizeof(msg_ev_trg_t));
+    assert(rc_sub->et.frmt_1.msg_ev_trg != NULL && "Memory exhausted");
+
+    // RRC Message copy
+    rc_sub->et.frmt_1.msg_ev_trg[0] = fill_msg_ev_trig_3(RRC_MSG_MSG_TYPE_EV_TRG, 1, DL_DCCH_NR_RRC_CLASS, 1);  // rrcReconfiguration
+    rc_sub->et.frmt_1.msg_ev_trg[1] = fill_msg_ev_trig_3(RRC_MSG_MSG_TYPE_EV_TRG, 2, UL_DCCH_NR_RRC_CLASS, 1);  // measurementReport
+    rc_sub->et.frmt_1.msg_ev_trg[2] = fill_msg_ev_trig_3(RRC_MSG_MSG_TYPE_EV_TRG, 3, UL_DCCH_NR_RRC_CLASS, 6);  // securityModeComplete
+
+    // Fill RAN Parameter Info
+    for (size_t j = 0; j < sz_1; j++) {
+      if (cmp_str_ba("RRC Message", report_sty->ran_param[j].name) != 0) {
+        printf("Received \"%s\" RAN Parameter ID. Expected \"RRC Message\". No RIC SUBSCRIPTION sent.\n", report_sty->ran_param[j].name.buf);
+        return NULL;
+      }
+      uint32_t const ran_param_id = report_sty->ran_param[j].id;
+      ran_param_def_t const* ran_param_def = report_sty->ran_param[j].def;
+
+      // Fill Action Definition
+      rc_sub->ad[0].frmt_1.param_report_def[j] = fill_param_report(ran_param_id, ran_param_def);
+    }      
+  } else if (cmp_str_ba("UE Information", report_sty->name) == 0) {  // as defined in section 7.4.5, formats used for SUBSCRIPTION msg are known
     size_t const sz = report_sty->sz_seq_ran_param;
 
     // Generate Event Trigger

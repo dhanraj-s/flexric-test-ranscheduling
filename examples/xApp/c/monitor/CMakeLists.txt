@@ -1,3 +1,5 @@
+add_subdirectory(RRC_MESSAGES)
+
 add_executable(xapp_kpm_moni 
 		xapp_kpm_moni.c
                 ../../../../src/util/alg_ds/alg/defer.c
@@ -31,6 +33,7 @@ add_executable(xapp_rc_moni
                   
 target_link_libraries(xapp_rc_moni
                      PUBLIC
+                     asn1_nr_rrc
                      e42_xapp
                      -pthread
                      -lsctp
