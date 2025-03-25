@@ -51,7 +51,7 @@ static
 void sm_cb_rlc(sm_ag_if_rd_t const* rd)
 {
   assert(rd != NULL);
-  assert(rd == INDICATION_MSG_AGENT_IF_ANS_V0);
+  assert(rd->type == INDICATION_MSG_AGENT_IF_ANS_V0);
   assert(rd->ind.type == RLC_STATS_V0); 
 
 //  int64_t now = time_now_us();

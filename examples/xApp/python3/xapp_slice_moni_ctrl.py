@@ -111,7 +111,7 @@ def slice_ind_to_dict_json(ind):
         outfile.write(ind_json)
     # print(ind_dict)
 
-    return json
+    return ind_json
 
 ####################
 #### SLICE INDICATION CALLBACK

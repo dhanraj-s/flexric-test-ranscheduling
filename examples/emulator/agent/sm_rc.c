@@ -301,6 +301,12 @@ e2sm_rc_func_def_t fill_rc_ran_def(void)
 {
   e2sm_rc_func_def_t def = {0};
 
+  //  RAN Function Name
+  //  Mandatory
+  //  9.3.2
+  //  6.2.2.1.
+  def.name = fill_rc_ran_func_name();
+
 #if defined(NGRAN_GNB) || defined(NGRAN_GNB_CU)
   // RAN Function Definition for EVENT TRIGGER
   // Optional
@@ -344,9 +350,6 @@ void read_rc_setup_sm(void* data)
   rc_e2_setup_t* rc = (rc_e2_setup_t*)data;
 
   /* Fill the RAN Function Definition with currently supported measurements */
-  
-  // RAN Function Name is already filled in fill_ran_function_name() in rc_sm_agent.c
-
   rc->ran_func_def = fill_rc_ran_def();
 }
 

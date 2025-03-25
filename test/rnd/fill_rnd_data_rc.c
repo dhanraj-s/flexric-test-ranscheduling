@@ -2373,9 +2373,7 @@ ran_function_name_t fill_rc_ran_func_name(void)
     // RAN Function Short Name
     // Mandatory
     // PrintableString [1-150]
-    dst.name.buf = calloc(strlen(SM_RAN_CTRL_SHORT_NAME) + 1, sizeof(uint8_t));
-    memcpy(dst.name.buf, SM_RAN_CTRL_SHORT_NAME, strlen(SM_RAN_CTRL_SHORT_NAME));
-    dst.name.len = strlen(SM_RAN_CTRL_SHORT_NAME);
+    dst.name = cp_str_to_ba(SM_RAN_CTRL_SHORT_NAME);
 
     // RAN Function Service Model OID
     // Mandatory
@@ -2386,9 +2384,7 @@ ran_function_name_t fill_rc_ran_func_name(void)
     //enterprise(1) 53148 e2(1)
     // version1 (1) e2sm(2) e2sm-RC-
     // IEs (3)
-    dst.oid.buf = calloc(strlen(SM_RAN_CTRL_OID) + 1, sizeof(uint8_t));
-    memcpy(dst.oid.buf, SM_RAN_CTRL_OID, strlen(SM_RAN_CTRL_OID));
-    dst.oid.len = strlen(SM_RAN_CTRL_OID);
+    dst.oid = cp_str_to_ba(SM_RAN_CTRL_OID);
 
     // RAN Function Description
     // Mandatory
@@ -2402,15 +2398,13 @@ ran_function_name_t fill_rc_ran_func_name(void)
     //- Execution of policies that may result in change of
     //RAN control behavior 
 
-    dst.description.buf = calloc(strlen(SM_RAN_CTRL_DESCRIPTION) + 1, sizeof(uint8_t));
-    memcpy(dst.description.buf, SM_RAN_CTRL_DESCRIPTION, strlen(SM_RAN_CTRL_DESCRIPTION));
-    dst.description.len = strlen(SM_RAN_CTRL_DESCRIPTION);
+    dst.description = cp_str_to_ba(SM_RAN_CTRL_DESCRIPTION);
 
     // RAN Function Instance
     // Optional
     // INTEGER
-//    long* instance;	/* OPTIONAL: it is suggested to be used when E2 Node declares
-//                                multiple RAN Function ID supporting the same  E2SM specification   ask Mikel */
+    // long* instance;	// OPTIONAL: it is suggested to be used when E2 Node declares
+    //                             multiple RAN Function ID supporting the same  E2SM specification
 
   return dst;
 }
@@ -3010,7 +3004,7 @@ e2sm_rc_func_def_t fill_rnd_rc_ran_func_def(void)
   //  Mandatory
   //  9.3.2
   //  6.2.2.1.
-  dst.name = fill_rc_ran_func_name();  
+  dst.name = fill_rc_ran_func_name();
 
   // RAN Function Definition for EVENT TRIGGER
   // Optional
