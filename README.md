@@ -266,9 +266,13 @@ Follow the instructions https://gitlab.eurecom.fr/oai/openairinterface5g/-/blob/
 ## 5.2 Integration with srsRAN 5G RAN
 Follow the instructions https://docs.srsran.com/projects/project/en/latest/tutorials/source/near-rt-ric/source/index.html.
 
-## 5.3 Integration with Keysight RICtest 
-The nearRT-RIC has been successfully tested with Keysight's RICtest RAN emulator https://www.keysight.com/us/en/product/P8828S/rictest-ran-intelligent-controller-test-solutions.html, 
-as demonstrated at O-RAN PlugFest Fall 2023. Specifically, the nearRT-RIC with the xApp `flexric/examples/xApp/c/keysight/xapp_keysight_kpm_rc.c` were tested.
+## 5.3 Integration with Keysight RICtest
+
+The OAI nearRT-RIC with the xApp `flexric/examples/xApp/c/keysight/xapp_keysight_kpm_rc.c` were successfully tested with [Keysight's RICtest RAN emulator](https://www.keysight.com/us/en/product/P8828S/rictest-ran-intelligent-controller-test-solutions.html), as demonstrated at O-RAN PlugFest Fall 2023.
+
+Please find more information at the following links (available only to the O-RAN Alliance members):
+* [recorded PlugFest session](https://oranalliance.atlassian.net/wiki/download/attachments/2907668584/O-RAN_PFFall2023_venue05.mp4). FlexRIC is shown after 3 hours 33 minutes (3:33:00).
+* [accompanying presentation](https://oranalliance.atlassian.net/wiki/download/attachments/2907668584/O-RAN_PFFall2023_venue05.pdf); the mentioned xApp is shown starting at slide 190.
 
 ## 5.4  Integration with ns-O-RAN simulator
 Developed by WIoT at Northeastern University, [ns-O-RAN](https://openrangym.com/ran-frameworks/ns-o-ran) is the first open source simulation platform that combines [a functional 4G/5G protocol stack in ns-3](https://github.com/nyuwireless-unipd/ns3-mmwave) with an [O-RAN-compliant E2 interface](https://gerrit.o-ran-sc.org/r/admin/repos/sim/ns3-o-ran-e2,general).
