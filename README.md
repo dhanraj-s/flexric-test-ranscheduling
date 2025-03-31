@@ -193,7 +193,12 @@ As this section is dedicated for testing with E2 agent emulators, **all RIC INDI
   ./build/examples/xApp/c/monitor/xapp_kpm_moni # not supported by emu_agent_enb
   ```
 
-  * start the E2SM-RC monitor xApp - aperiodic subscription for "UE RRC State Change"; `ORAN.WG3.E2SM-RC-v01.03` section 7.4.5 - REPORT Service Style 4 ("UE Information")
+  * start the E2SM-RC monitor xApp - based on `ORAN.WG3.E2SM-RC-v01.03` specification, aperiodic subscriptions to:
+    * REPORT Service Style 1 ("Message Copy") - section 7.4.2
+      * `RRC Message` (`RRC Reconfiguration`, `Measurement Report`, `Security Mode Complete`, `RRC Setup Complete`)
+      * `UE ID` (when `RRC Setup Complete` and/or `F1 UE Context Setup Request` detected)
+    * REPORT Service Style 4 ("UE Information") - section 7.4.5
+      * `UE RRC State Change` (`RRC connected`, `RRC inactive`, `RRC idle`)
   ```bash
   ./build/examples/xApp/c/monitor/xapp_rc_moni # not supported by eNB as per spec
   ```
