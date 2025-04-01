@@ -669,7 +669,7 @@ int main(int argc, char* argv[])
         rc_sub_data_t *rc_sub = gen_rc_sub_msg(&rc_report->seq_report_sty[j]);
 
         if (rc_sub) {
-          hndl[i][j] = report_sm_xapp_api(&n->id, RC_ran_function, &rc_sub, sm_cb_rc);
+          hndl[i][j] = report_sm_xapp_api(&n->id, RC_ran_function, rc_sub, sm_cb_rc);
           assert(hndl[i][j].success == true);
           free_rc_sub_data(rc_sub);
           free(rc_sub);
