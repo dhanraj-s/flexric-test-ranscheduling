@@ -262,6 +262,12 @@ docker buildx build --no-cache --target oai-flexric --tag oai-flexric:dev --file
 docker buildx build --no-cache --target oai-flexric --tag oai-flexric:dev --file docker/Dockerfile.flexric.rocky .
 ```
 
+In order to reproduce the [bare-metal testbed](#41-bare-metal-testbed) in docker environment, follow the next steps:
+```bash
+cd docker
+docker compose up -d
+```
+
 # 5. Integration with RAN and example of deployment
 
 ## 5.1 Integration with OpenAirInterface 5G RAN
