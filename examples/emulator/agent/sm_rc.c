@@ -28,37 +28,62 @@ bool read_rc_sm(void* data)
 
 #if defined(NGRAN_GNB) || defined(NGRAN_GNB_CU)
 static
-void fill_rc_ev_trig(ran_func_def_ev_trig_t* ev_trig)
+seq_ev_trg_style_t fill_ev_tr_format_4(const char *ev_style_name)
 {
-  // Sequence of EVENT TRIGGER styles
-  // [1 - 63]
-  ev_trig->sz_seq_ev_trg_style = 1;
-  ev_trig->seq_ev_trg_style = calloc(ev_trig->sz_seq_ev_trg_style, sizeof(seq_ev_trg_style_t));
-  assert(ev_trig->seq_ev_trg_style != NULL && "Memory exhausted");
-
-  seq_ev_trg_style_t* ev_trig_style = &ev_trig->seq_ev_trg_style[0];
+  seq_ev_trg_style_t ev_trig_style = {0};
 
   // RIC Event Trigger Style Type
   // Mandatory
   // 9.3.3
-  // 6.2.2.2.
-  //  INTEGER
-  ev_trig_style->style = 4;
+  ev_trig_style.style = 4;
 
   // RIC Event Trigger Style Name
   // Mandatory
   // 9.3.4
-  // 6.2.2.3
-  //PrintableString(SIZE(1..150,...))
-  const char ev_style_name[] = "UE Information Change";
-  ev_trig_style->name = cp_str_to_ba(ev_style_name);
+  ev_trig_style.name = cp_str_to_ba(ev_style_name);
 
   // RIC Event Trigger Format Type
   // Mandatory
   // 9.3.5
-  // 6.2.2.4.
-  // INTEGER
-  ev_trig_style->format = FORMAT_4_E2SM_RC_EV_TRIGGER_FORMAT;
+  ev_trig_style.format = FORMAT_4_E2SM_RC_EV_TRIGGER_FORMAT;
+
+  return ev_trig_style;
+}
+
+static
+seq_ev_trg_style_t fill_ev_tr_format_1(const char *ev_style_name)
+{
+  seq_ev_trg_style_t ev_trig_style = {0};
+
+  // RIC Event Trigger Style Type
+  // Mandatory
+  // 9.3.3
+  ev_trig_style.style = 1;
+
+  // RIC Event Trigger Style Name
+  // Mandatory
+  // 9.3.4
+  ev_trig_style.name = cp_str_to_ba(ev_style_name);
+
+  // RIC Event Trigger Format Type
+  // Mandatory
+  // 9.3.5
+  ev_trig_style.format = FORMAT_1_E2SM_RC_EV_TRIGGER_FORMAT;
+
+  return ev_trig_style;
+}
+
+static
+void fill_rc_ev_trig(ran_func_def_ev_trig_t* ev_trig)
+{
+  // Sequence of EVENT TRIGGER styles
+  // [1 - 63]
+  ev_trig->sz_seq_ev_trg_style = 2;
+  ev_trig->seq_ev_trg_style = calloc(ev_trig->sz_seq_ev_trg_style, sizeof(seq_ev_trg_style_t));
+  assert(ev_trig->seq_ev_trg_style != NULL && "Memory exhausted");
+
+  ev_trig->seq_ev_trg_style[0] = fill_ev_tr_format_1("Message Event");
+  ev_trig->seq_ev_trg_style[1] = fill_ev_tr_format_4("UE Information Change");
 
   // Sequence of RAN Parameters for L2 Variables
   // [0 - 65535]
@@ -82,29 +107,132 @@ void fill_rc_ev_trig(ran_func_def_ev_trig_t* ev_trig)
 }
 
 static
-seq_ran_param_3_t fill_rc_ran_param(void)
+seq_report_sty_t fill_report_style_4(const char *report_name)
 {
-  seq_ran_param_3_t ran_param = {0};
+  seq_report_sty_t report_style = {0};
+
+  // RIC Report Style Type
+  // Mandatory
+  // 9.3.3
+  report_style.report_type = 4;
+
+  // RIC Report Style Name
+  // Mandatory
+  // 9.3.4
+  report_style.name = cp_str_to_ba(report_name);
+
+  // Supported RIC Event Trigger Style Type 
+  // Mandatory
+  // 9.3.3
+  report_style.ev_trig_type = FORMAT_4_E2SM_RC_EV_TRIGGER_FORMAT;
+
+  // RIC Report Action Format Type
+  // Mandatory
+  // 9.3.5
+  report_style.act_frmt_type = FORMAT_1_E2SM_RC_ACT_DEF;
+
+  // RIC Indication Header Format Type
+  // Mandatory
+  // 9.3.5
+  report_style.ind_hdr_type = FORMAT_1_E2SM_RC_IND_HDR;
+
+  // RIC Indication Message Format Type
+  // Mandatory
+  // 9.3.5
+  report_style.ind_msg_type = FORMAT_2_E2SM_RC_IND_MSG;
+
+  // Sequence of RAN Parameters Supported
+  // [0 - 65535]
+  report_style.sz_seq_ran_param = 1;
+  report_style.ran_param = calloc(report_style.sz_seq_ran_param, sizeof(seq_ran_param_3_t));
+  assert(report_style.ran_param != NULL && "Memory exhausted");
 
   // RAN Parameter ID
   // Mandatory
   // 9.3.8
   // [1- 4294967295]
-  ran_param.id = E2SM_RC_RS4_RRC_STATE_CHANGED_TO;
+  report_style.ran_param[0].id = E2SM_RC_RS4_RRC_STATE_CHANGED_TO;
 
   // RAN Parameter Name
   // Mandatory
   // 9.3.9
   // [1-150] 
-  const char ran_param_name[] = "RRC State";
-  ran_param.name = cp_str_to_ba(ran_param_name);
+  const char ran_param_name[] = "RRC State Changed To";
+  report_style.ran_param[0].name = cp_str_to_ba(ran_param_name);
 
   // RAN Parameter Definition
   // Optional
   // 9.3.51
-  ran_param.def = NULL;
+  report_style.ran_param[0].def = NULL;
 
-  return ran_param;
+  return report_style;
+}
+
+static
+seq_report_sty_t fill_report_style_1(const char *report_name)
+{
+  seq_report_sty_t report_style = {0};
+
+  // RIC Report Style Type
+  // Mandatory
+  // 9.3.3
+  report_style.report_type = 1;
+
+  // RIC Report Style Name
+  // Mandatory
+  // 9.3.4
+  report_style.name = cp_str_to_ba(report_name);
+
+  // Supported RIC Event Trigger Style Type 
+  // Mandatory
+  // 9.3.3
+  report_style.ev_trig_type = FORMAT_1_E2SM_RC_EV_TRIGGER_FORMAT;
+
+  // RIC Report Action Format Type
+  // Mandatory
+  // 9.3.5
+  report_style.act_frmt_type = FORMAT_1_E2SM_RC_ACT_DEF;
+
+  // RIC Indication Header Format Type
+  // Mandatory
+  // 9.3.5
+  report_style.ind_hdr_type = FORMAT_1_E2SM_RC_IND_HDR;
+
+  // RIC Indication Message Format Type
+  // Mandatory
+  // 9.3.5
+  report_style.ind_msg_type = FORMAT_1_E2SM_RC_IND_MSG;
+
+  // Sequence of RAN Parameters Supported
+  // [0 - 65535]
+  report_style.sz_seq_ran_param = 2;
+  report_style.ran_param = calloc(report_style.sz_seq_ran_param, sizeof(seq_ran_param_3_t));
+  assert(report_style.ran_param != NULL && "Memory exhausted");
+
+
+  // RAN Parameter ID
+  // Mandatory
+  // 9.3.8
+  // [1- 4294967295]
+  report_style.ran_param[0].id = E2SM_RC_RS1_RRC_MESSAGE;
+  report_style.ran_param[1].id = E2SM_RC_RS1_UE_ID;
+
+  // RAN Parameter Name
+  // Mandatory
+  // 9.3.9
+  // [1-150] 
+  const char ran_param_name_0[] = "RRC Message";
+  report_style.ran_param[0].name = cp_str_to_ba(ran_param_name_0);
+  const char ran_param_name_1[] = "UE ID";
+  report_style.ran_param[1].name = cp_str_to_ba(ran_param_name_1);
+
+  // RAN Parameter Definition
+  // Optional
+  // 9.3.51
+  report_style.ran_param[0].def = NULL;
+  report_style.ran_param[1].def = NULL;
+
+  return report_style;
 }
 
 static
@@ -112,61 +240,12 @@ void fill_rc_report(ran_func_def_report_t* report)
 {
   // Sequence of REPORT styles
   // [1 - 63]
-  report->sz_seq_report_sty = 1;
+  report->sz_seq_report_sty = 2;
   report->seq_report_sty = calloc(report->sz_seq_report_sty, sizeof(seq_report_sty_t));
   assert(report->seq_report_sty != NULL && "Memory exhausted");
 
-  seq_report_sty_t* report_style = &report->seq_report_sty[0];
-
-    // RIC Report Style Type
-  // Mandatory
-  // 9.3.3
-  // 6.2.2.2.
-  // INTEGER
-  report_style->report_type = 4;
-
-  // RIC Report Style Name
-  // Mandatory
-  // 9.3.4
-  // 6.2.2.3.
-  // PrintableString(SIZE(1..150,...)) 
-  const char report_name[] = "UE Information";
-  report_style->name = cp_str_to_ba(report_name);
-
-  // Supported RIC Event Trigger Style Type 
-  // Mandatory
-  // 9.3.3
-  // 6.2.2.2.
-  // INTEGER
-  report_style->ev_trig_type = FORMAT_4_E2SM_RC_EV_TRIGGER_FORMAT;
-
-  // RIC Report Action Format Type
-  // Mandatory
-  // 9.3.5
-  // 6.2.2.4.
-  // INTEGER
-  report_style->act_frmt_type = FORMAT_1_E2SM_RC_ACT_DEF;
-
-  // RIC Indication Header Format Type
-  // Mandatory
-  // 9.3.5
-  // 6.2.2.4.
-  // INTEGER
-  report_style->ind_hdr_type = FORMAT_1_E2SM_RC_IND_HDR;
-
-  // RIC Indication Message Format Type
-  // Mandatory
-  // 9.3.5
-  // 6.2.2.4.
-  // INTEGER
-  report_style->ind_msg_type = FORMAT_2_E2SM_RC_IND_MSG;
-
-  // Sequence of RAN Parameters Supported
-  // [0 - 65535]
-  report_style->sz_seq_ran_param = 1;
-  report_style->ran_param = calloc(report_style->sz_seq_ran_param, sizeof(seq_ran_param_3_t));
-  assert(report_style->ran_param != NULL && "Memory exhausted");
-  report_style->ran_param[0] = fill_rc_ran_param();
+  report->seq_report_sty[0] = fill_report_style_1("Message Copy");
+  report->seq_report_sty[1] = fill_report_style_4("UE Information");
 }
 
 static
@@ -395,30 +474,34 @@ sm_ag_if_ans_t write_ctrl_rc_sm(void const* data)
 }
 
 static
-uint32_t sta_ric_id;
+uint32_t *ric_req_id_list = NULL;
+static
+size_t sz_ric_req_id = 0;
 
 static
 void free_aperiodic_subscription(uint32_t ric_req_id)
 {
-  assert(ric_req_id == sta_ric_id); 
-  (void)ric_req_id;
+  for (size_t i = 0; i < sz_ric_req_id; i++) {
+    if (ric_req_id == ric_req_id_list[i])
+      (void)ric_req_id_list[i];
+  }
 }
 
 static
-void* emulate_rrc_msg(void* ptr)
+void* emulate_ric_ind(void* ptr)
 {
-  (void)ptr; 
+  (void)ptr;
   for(size_t i = 0; i < 5; ++i){
     usleep(rand()%4000);
-    rc_ind_data_t* d = calloc(1, sizeof(rc_ind_data_t)); 
-    assert(d != NULL && "Memory exhausted");
-    d->hdr.format = FORMAT_1_E2SM_RC_IND_HDR;
-    d->hdr.frmt_1 = fill_rnd_rc_ind_hdr_frmt_1();
-    d->msg.format = FORMAT_2_E2SM_RC_IND_MSG;
-    d->msg.frmt_2 = fill_rnd_ind_msg_frmt_2();
+    for (size_t j = 0; j < sz_ric_req_id; j++) {
+      rc_ind_data_t* d = calloc(1, sizeof(rc_ind_data_t));
+      assert(d != NULL && "Memory exhausted");
+      d->hdr = fill_rnd_rc_ind_hdr();
+      d->msg = fill_rnd_rc_ind_msg();
 
-    async_event_agent_api(sta_ric_id, d);
-    printf("Event for RIC Req ID %u generated\n", sta_ric_id);
+      async_event_agent_api(ric_req_id_list[j], d);
+      printf("Event for RIC Req ID %u generated\n", ric_req_id_list[j]);
+    }
   }
 
   return NULL;
@@ -432,11 +515,12 @@ sm_ag_if_ans_t write_subs_rc_sm(void const* src)
   assert(src != NULL); // && src->type == RAN_CTRL_SUBS_V1_03);
 
   wr_rc_sub_data_t* wr_rc = (wr_rc_sub_data_t*)src;
-  printf("ric req id %d \n", wr_rc->ric_req_id);
 
-  sta_ric_id = wr_rc->ric_req_id;
+  ric_req_id_list = realloc(ric_req_id_list, (sz_ric_req_id + 1) * sizeof(uint32_t));
+  (ric_req_id_list)[sz_ric_req_id] = wr_rc->ric_req_id;
+  (sz_ric_req_id)++;
 
-  int rc = pthread_create(&t_ran_ctrl, NULL, emulate_rrc_msg, NULL);
+  int rc = pthread_create(&t_ran_ctrl, NULL, emulate_ric_ind, NULL);
   assert(rc == 0);
 
   sm_ag_if_ans_t ans = {.type = SUBS_OUTCOME_SM_AG_IF_ANS_V0};
