@@ -28,7 +28,7 @@ Below is the list of features available in this version divided per component an
 
 # 1. Installation
 
-## 1.1 Install prerequisites
+## 1.1 Prerequisites
 
 ### 1.1.1 GCC compiler
 - Please make sure you have gcc-13 installed (gcc-10 and 12 are compatible as well). Follow the next steps:
@@ -42,9 +42,14 @@ sudo update-alternatives --config gcc # chose gcc-13
 ```
 Note: gcc-11 is not supported in FlexRIC
 
-### 1.1.2 Flatbuffer encoding (optional)
+### 1.1.2 (opt.) Wireshark
+Per `O-RAN.WG3.E2GAP-v02.00` specifications, no SCTP port is specified for E2AP protocol. In our implementation, we use port number 36421. Please, add the following configuration in Wireshark:
+
+![E2AP configuration](fig/4.png)
+
+### 1.1.3 (opt.) Flatbuffer encoding
 We also provide a flatbuffers encoding/decoding scheme as alternative to ASN.1. In case that you want to use it  follow the
-instructions at https://github.com/dvidelabs/flatcc and provide the path for the lib and include when selecting it at `ccmake ..` from the build directory 
+instructions at https://github.com/dvidelabs/flatcc and provide the path for the lib and include when selecting it at `ccmake ..` from the build directory
 
 ## 1.2 Download the required dependencies
 
@@ -53,8 +58,8 @@ instructions at https://github.com/dvidelabs/flatcc and provide the path for the
 sudo apt install libsctp-dev cmake-curses-gui libpcre2-dev
 ```
 
-### 1.2.2 Multi-language xApp requirements (optional)
-- SWIG (at least  v.4.1). 
+### 1.2.2 (opt.) Multi-language xApp requirements
+- SWIG (at least  v.4.1).
 We use SWIG as an interface generator to enable the multi-language feature (i.e., C/C++ and Python) for the xApps. Please, check your SWIG version (i.e, `swig-version`) and install it from scratch if necessary as described here: https://swig.org/svn.html or via the code below:
 ```bash
 git clone https://github.com/swig/swig.git
@@ -71,21 +76,19 @@ sudo make install
 sudo apt-get install python3.10-dev
 ```
 
-# 2. Deployment
+# 2. FlexRIC installation
 
-## 2.1 FlexRIC
-
-### 2.1.1 Clone the FlexRIC repository
+## 2.1 Clone the FlexRIC repository
 ```bash
 git clone https://gitlab.eurecom.fr/mosaic5g/flexric
 cd flexric/
 ```
 
-### 2.1.2 Build FlexRIC
+## 2.2 Build FlexRIC
 ```bash
 mkdir build && cd build && cmake .. && make -j8
 ```
-If you have installed optional libraries from section [1.2.2 Multi-language xApp requirements (optional)](#122-multi-language-xapp-requirements-optional), run the following command:
+If you have installed optional libraries from section [1.2.2 (opt.) Multi-language xApp requirements](#122-opt-multi-language-xapp-requirements), run the following command:
 ```bash
 mkdir build && cd build && cmake -DXAPP_MULTILANGUAGE=ON .. && make -j8
 ```
@@ -94,10 +97,10 @@ Currently available versions:
 |            |E2SM-KPM v2.01|E2SM-KPM v2.03|E2SM-KPM v3.00|
 |:-----------|:-------------|:-------------|:-------------|
 | E2AP v1.01 | Y            | Y            | Y            |
-| E2AP v2.03 | Y            | Y            | Y            |
+| E2AP v2.03 | Y            | Y (default)  | Y            |
 | E2AP v3.01 | Y            | Y            | Y            |
 
-By default, FlexRIC will build the nearRT-RIC with E2AP v2.03 and E2SM-KPM v2.03. If you are interested in other available versions, please, execute this command:
+If you wish to modify the default versions, please, execute this command:
 ```bash
 mkdir build && cd build && cmake -DE2AP_VERSION=E2AP_VX -DKPM_VERSION=KPM_VY .. && make -j8
 ```
@@ -108,7 +111,7 @@ If you want to profile FlexRIC, or just need a fast nearRT-RIC, you should build
 mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j8
 ```
 
-### 2.1.3 Installation of Service Models (SMs)
+## 2.3 Installation of Service Models (SMs)
 The service models are shared by xApps and the RAN. Therefore, they have to be installed in a place where the RAN can access them. The easiest is to install them globally, by typing:
 ```bash
 sudo make install
@@ -127,7 +130,7 @@ Check that everything went fine by running unit tests:
 ctest -j8 --output-on-failure
 ```
 
-# 3. Service Models available in OAI RAN
+# 3. Service Models
 
 ## 3.1 O-RAN
 For a deeper understanding, we recommend that users of FlexRIC familiarize themselves with O-RAN WG3 specifications available at the [O-RAN specifications page](https://orandownloadsweb.azurewebsites.net/specifications).
@@ -139,7 +142,7 @@ The following specifications are recommended:
 - `O-RAN.WG3.E2SM-RC-v01.03` - E2SM-RC Service Model description
 
 ### 3.1.1 E2SM-KPM
-As mentioned in section [2.1.2 Build FlexRIC](#212-build-flexric), we support E2SM-KPM v2.01/v2.03/v3.00 which all use ASN.1 encoding.
+As mentioned in section [2.2 Build FlexRIC](#22-build-flexric), we support E2SM-KPM v2.01/v2.03/v3.00 which all use ASN.1 encoding.
 
 ### 3.1.2 E2SM-RC
 We support E2SM-RC v1.03 which uses ASN.1 encoding.
@@ -148,12 +151,10 @@ We support E2SM-RC v1.03 which uses ASN.1 encoding.
 In addition, we support custom service models, such are MAC, RLC, PDCP, GTP, SLICE and TC (traffic control). All use plain encoding, i.e., no ASN.1, but write the binary data into network messages.
 However, please be aware that not all of them are supported with OAI RAN, and written in C/Python languages. For more information, please refer to the table in [FlexRIC introduction](#flexric-introduction).
 
-# 4. Usage/deployment
+# 4. Deployment
 
-## 4.1 Test with emulators
-Run Wireshark and capture E2AP traffic. Per O-RAN.WG3.E2GAP-v02.00 specifications, no SCTP port is specified for E2AP protocol. In our implementation, we use port number 36421. Please, add the following configuration in Wireshark:
-
-![E2AP configuration](fig/4.png)
+## 4.1 Bare-metal testbed
+Optionally run Wireshark and capture E2AP traffic.
 
 * Start the nearRT-RIC
 Please make sure to set the desired nearRT-RIC IP address `NEAR_RIC_IP` in `/usr/local/etc/flexric/flexric.conf`.
@@ -241,8 +242,6 @@ As this section is dedicated for testing with E2 agent emulators, **all RIC INDI
   cd build/examples/xApp/python3 && ./watch_slice_stats # to observe real-time stats for network slices
   ```
 
-Please, notice that no real UE is connected. Therefore, random values within supported messages are filled.
-
 Multiple xApps can be run in parallel.
 
 At this point, FlexRIC is working correctly in your computer and you have already tested the multi-agent, multi-xApp and multi-language capabilities. 
@@ -252,7 +251,7 @@ Therefore, FlexRIC is well suited for use cases with ultra low-latency requireme
 Additionally, all the data received in the xApp is also written to `/tmp/xapp_db` in case that offline data processing is wanted (e.g., Machine Learning/Artificial Intelligence applications). You browse the data using e.g., sqlitebrowser. 
 Please, check the example folder for other working xApp use cases.
 
-## 4.2 Docker (optional step)
+## 4.2 (opt.) Docker testbed
 FlexRIC is supported on the following distributions: Ubuntu, Red Hat, and Rocky Linux. You can build the images as:
 ```bash
 # Ubuntu
@@ -261,6 +260,12 @@ docker buildx build --no-cache --target oai-flexric --tag oai-flexric:dev --file
 docker buildx build --no-cache --target oai-flexric --tag oai-flexric:dev --file docker/Dockerfile.flexric.rhel .
 # Rocky Linux
 docker buildx build --no-cache --target oai-flexric --tag oai-flexric:dev --file docker/Dockerfile.flexric.rocky .
+```
+
+In order to reproduce the [bare-metal testbed](#41-bare-metal-testbed) in docker environment, follow the next steps:
+```bash
+cd docker
+docker compose up -d
 ```
 
 # 5. Integration with RAN and example of deployment
@@ -288,7 +293,7 @@ Recognizing the critical role of the ns-O-RAN simulator, the Orange Innovation E
 
 The simulator has been updated and enhanced to support E2AP v1.01, E2SM-KPM v3.00, and E2SM-RC v1.03. This framework has been tested with the `/build/examples/xApp/c/kpm_rc/xapp_kpm_rc` xApp with different scenarios.
 
-## 5.5 (opt) Synchronize clock
+## 5.5 (opt.) Synchronize clock
 Before running the various components (RAN/nearRT-RIC/xApps), you probably want to align the machines' clock. For this aim, you can use `ptp4l` in all the machines
 involved (if you have for example deployed the various components on different hosts)
 
