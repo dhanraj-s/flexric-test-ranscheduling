@@ -49,6 +49,8 @@ services:
         image: oai-flexric:dev
         command: "stdbuf -o0 /usr/local/flexric/xApp/c/monitor/xapp_kpm_moni"
         container_name: xapp-kpm-moni
+        environment:
+            - XAPP_DURATION=20
         depends_on:
             - nearRT-RIC
             - emu-gnb-mono
@@ -64,6 +66,8 @@ services:
         image: oai-flexric:dev
         command: "stdbuf -o0 /usr/local/flexric/xApp/c/monitor/xapp_rc_moni"
         container_name: xapp-rc-moni
+        environment:
+            - XAPP_DURATION=20
         depends_on:
             - nearRT-RIC
             - emu-gnb-mono
@@ -79,6 +83,8 @@ services:
         image: oai-flexric:dev
         command: "stdbuf -o0 /usr/local/flexric/xApp/c/monitor/xapp_gtp_mac_rlc_pdcp_moni"
         container_name: xapp-gtp-mac-rlc-pdcp-moni
+        environment:
+            - XAPP_DURATION=20
         depends_on:
             - nearRT-RIC
             - emu-gnb-mono
