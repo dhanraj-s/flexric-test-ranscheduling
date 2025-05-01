@@ -57,6 +57,11 @@ void init()
   init_xapp_api(&args);
 }
 
+void xapp_wait(void)
+{
+  return xapp_wait_end_api();
+}
+
 bool try_stop()
 {
   return try_stop_xapp_api();

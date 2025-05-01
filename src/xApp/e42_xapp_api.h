@@ -34,6 +34,7 @@ extern "C" {
 #include "../sm/agent_if/read/sm_ag_if_rd.h"
 #include "../util/conf_file.h"
 
+void xapp_wait_end_api(void);
 
 void init_xapp_api(fr_args_t const*);
   

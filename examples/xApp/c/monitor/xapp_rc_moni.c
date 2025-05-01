@@ -681,7 +681,7 @@ int main(int argc, char* argv[])
   // END RC
   ////////////
 
-  sleep(20);
+  xapp_wait_end_api();
 
   for (int i = 0; i < nodes.len; i++) {
     // Remove the handle previously returned
