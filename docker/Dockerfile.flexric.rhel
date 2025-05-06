@@ -100,9 +100,7 @@ RUN mkdir build && \
     scl enable gcc-toolset-12 "\
     cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
           -DE2AP_VERSION=$E2AP_VERSION \
-          -DKPM_VERSION=$KPM_VERSION \
-          -DCMAKE_C_FLAGS_RELEASE='-O3' \
-          -DCMAKE_CXX_FLAGS_RELEASE='-O3' .. && \
+          -DKPM_VERSION=$KPM_VERSION .. && \
     ninja && \
     ninja install" && \
     echo "--- Check shared objects dependencies for executable nearRT-RIC ---" && \
