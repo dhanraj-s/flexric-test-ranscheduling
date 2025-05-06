@@ -126,15 +126,7 @@ RUN apt-get update && \
 WORKDIR /
 
 COPY --from=oai-flexric-builder \
-    /usr/local/lib/flexric/libmac_sm.so \
-    /usr/local/lib/flexric/libkpm_sm.so \
-    /usr/local/lib/flexric/librlc_sm.so \
-    /usr/local/lib/flexric/libslice_sm.so \
-    /usr/local/lib/flexric/libtc_sm.so \
-    /usr/local/lib/flexric/libgtp_sm.so \
-    /usr/local/lib/flexric/libpdcp_sm.so \
-    /usr/local/lib/flexric/librc_sm.so \
-    /usr/local/lib/flexric/
+    /usr/local/lib/flexric /usr/local/lib/flexric
 
 COPY --from=oai-flexric-builder \
     /flexric/build/src/xApp/libe42_xapp_shared.so \
