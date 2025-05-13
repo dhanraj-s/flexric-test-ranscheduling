@@ -90,8 +90,6 @@ RUN mkdir build && \
     cmake -GNinja \
           -DCMAKE_C_COMPILER=gcc-12 \
           -DCMAKE_CXX_COMPILER=g++-12 \
-          -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold -z execstack" \
-          -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -z execstack" \
           .. && \
     ninja && \
     ninja install && \

@@ -56,11 +56,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  add_compile_options("-march=native;-flto")
-  add_compile_options("-D_FORTIFY_SOURCE=3")
-endif()
-
 #######
 ## SANITIZER
 #######

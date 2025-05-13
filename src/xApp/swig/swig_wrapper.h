@@ -27,6 +27,8 @@ struct E2Node {
 
 void init(void); 
 
+void xapp_wait(void);
+
 bool try_stop(void);
 
 std::vector<E2Node> conn_e2_nodes(void);

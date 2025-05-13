@@ -93,8 +93,6 @@ RUN mkdir build && \
     cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
           -DE2AP_VERSION=$E2AP_VERSION \
           -DKPM_VERSION=$KPM_VERSION \
-          -DCMAKE_C_FLAGS_RELEASE="-O3" \
-          -DCMAKE_CXX_FLAGS_RELEASE="-O3" \
           -DCMAKE_C_COMPILER=gcc-12 \
           -DCMAKE_CXX_COMPILER=g++-12 .. && \
     ninja && \
@@ -128,15 +126,7 @@ RUN apt-get update && \
 WORKDIR /
 
 COPY --from=oai-flexric-builder \
-    /usr/local/lib/flexric/libmac_sm.so \
-    /usr/local/lib/flexric/libkpm_sm.so \
-    /usr/local/lib/flexric/librlc_sm.so \
-    /usr/local/lib/flexric/libslice_sm.so \
-    /usr/local/lib/flexric/libtc_sm.so \
-    /usr/local/lib/flexric/libgtp_sm.so \
-    /usr/local/lib/flexric/libpdcp_sm.so \
-    /usr/local/lib/flexric/librc_sm.so \
-    /usr/local/lib/flexric/
+    /usr/local/lib/flexric /usr/local/lib/flexric
 
 COPY --from=oai-flexric-builder \
     /flexric/build/src/xApp/libe42_xapp_shared.so \

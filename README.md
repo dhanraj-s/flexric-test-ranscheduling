@@ -188,10 +188,11 @@ Within E2 Setup Request message, E2 node sends the list of supported service mod
 
 As this section is dedicated for testing with E2 agent emulators, **all RIC INDICATION messages contain random data, as there is no UE connected**.
 
+`XAPP_DURATION` environment variable overwrites the default xApp duration of 20s. If the negative value used, the xApp duration is considered to be infinite.
 * Start different C xApps
   * start the E2SM-KPM monitor xApp - fetch UE-level measurements based on S-NSSAI `(1, 0xffffff)` condition; `O-RAN.WG3.E2SM-KPM-version` section 7.4.5 - REPORT Service Style 4 ("Common condition-based, UE-level")
   ```bash
-  ./build/examples/xApp/c/monitor/xapp_kpm_moni # not supported by emu_agent_enb
+  XAPP_DURATION=20 ./build/examples/xApp/c/monitor/xapp_kpm_moni # not supported by emu_agent_enb
   ```
 
   * start the E2SM-RC monitor xApp - based on `ORAN.WG3.E2SM-RC-v01.03` specification, aperiodic subscriptions to:
@@ -201,17 +202,17 @@ As this section is dedicated for testing with E2 agent emulators, **all RIC INDI
     * REPORT Service Style 4 ("UE Information") - section 7.4.5
       * `UE RRC State Change` (`RRC connected`, `RRC inactive`, `RRC idle`)
   ```bash
-  ./build/examples/xApp/c/monitor/xapp_rc_moni # not supported by eNB as per spec
+  XAPP_DURATION=20 ./build/examples/xApp/c/monitor/xapp_rc_moni # not supported by eNB as per spec
   ```
 
   * start the E2SM-RC control xApp - RAN control function "QoS flow mapping configuration" (e.g. creating a new DRB); `ORAN.WG3.E2SM-RC-v01.03` section 7.6.2 - CONTROL Service Style 1 ("Radio Bearer Control")
   ```bash
-  ./build/examples/xApp/c/kpm_rc/xapp_kpm_rc # not supported by emu_agent_enb
+  XAPP_DURATION=20 ./build/examples/xApp/c/kpm_rc/xapp_kpm_rc # not supported by emu_agent_enb
   ```
 
   * start the (MAC + RLC + PDCP + GTP) monitor xApp
   ```bash
-  ./build/examples/xApp/c/monitor/xapp_gtp_mac_rlc_pdcp_moni
+  XAPP_DURATION=20 ./build/examples/xApp/c/monitor/xapp_gtp_mac_rlc_pdcp_moni
   ```
 
   * start the MAC control xApp
@@ -236,7 +237,7 @@ As this section is dedicated for testing with E2 agent emulators, **all RIC INDI
   * if `XAPP_MULTILANGUAGE` option is enabled, start the python xApps:
   ```bash
   # (MAC + RLC + PDCP + GTP) monitor xApp
-  python3 build/examples/xApp/python3/xapp_mac_rlc_pdcp_gtp_moni.py
+  XAPP_DURATION=20 python3 build/examples/xApp/python3/xapp_mac_rlc_pdcp_gtp_moni.py
   # slicing xApp
   python3 build/examples/xApp/python3/xapp_slice_moni_ctrl.py
   cd build/examples/xApp/python3 && ./watch_slice_stats # to observe real-time stats for network slices

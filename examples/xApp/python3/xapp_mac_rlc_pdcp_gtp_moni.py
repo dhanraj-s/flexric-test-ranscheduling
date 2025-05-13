@@ -136,7 +136,7 @@ for i in range(0, len(conn)):
     gtp_hndlr.append(hndlr)
     time.sleep(1)
 
-time.sleep(10)
+ric.xapp_wait()
 
 ### End
 

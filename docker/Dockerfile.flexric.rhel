@@ -100,9 +100,7 @@ RUN mkdir build && \
     scl enable gcc-toolset-12 "\
     cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
           -DE2AP_VERSION=$E2AP_VERSION \
-          -DKPM_VERSION=$KPM_VERSION \
-          -DCMAKE_C_FLAGS_RELEASE='-O3' \
-          -DCMAKE_CXX_FLAGS_RELEASE='-O3' .. && \
+          -DKPM_VERSION=$KPM_VERSION .. && \
     ninja && \
     ninja install" && \
     echo "--- Check shared objects dependencies for executable nearRT-RIC ---" && \
@@ -141,15 +139,7 @@ RUN  rm -f /etc/rhsm-host && \
 WORKDIR /usr/local/lib64/flexric/
 
 COPY --from=oai-flexric-builder \
-    /usr/local/lib64/flexric/libmac_sm.so \
-    /usr/local/lib64/flexric/libkpm_sm.so \
-    /usr/local/lib64/flexric/librlc_sm.so \
-    /usr/local/lib64/flexric/libslice_sm.so \
-    /usr/local/lib64/flexric/libtc_sm.so \
-    /usr/local/lib64/flexric/libgtp_sm.so \
-    /usr/local/lib64/flexric/libpdcp_sm.so \
-    /usr/local/lib64/flexric/librc_sm.so \
-    /usr/local/lib64/flexric/
+    /usr/local/lib64/flexric /usr/local/lib64/flexric
 
 WORKDIR /flexric/build/src/xApp/
 COPY --from=oai-flexric-builder \
