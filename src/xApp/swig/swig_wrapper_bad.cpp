@@ -1,6 +1,3 @@
-// File modified by https://github.com/dhanraj-s
-// Code added from https://github.com/lgs96/flexric
-
 //#include "FlexRIC.h"
 #include "swig_wrapper.h"
 
@@ -60,11 +57,6 @@ void init()
   init_xapp_api(&args);
 }
 
-void xapp_wait(void)
-{
-  return xapp_wait_end_api();
-}
-
 bool try_stop()
 {
   return try_stop_xapp_api();
@@ -86,7 +78,7 @@ std::vector<E2Node> conn_e2_nodes(void)
     std::vector<ran_function_t> ran_func;//(src->len_rf);
 
     for(size_t j = 0; j < src->len_rf; ++j){
-      ran_function_t rf = {.id = src->rf[i].id, .rev = src->rf[i].rev }; //cp_ran_function(&src->ack_rf[j]);
+      ran_function_t rf = cp_ran_function(&src->ack_rf[j]);
       ran_func.push_back(rf);// [j] = rf;
     }
     tmp.ran_func = ran_func;
@@ -175,12 +167,11 @@ void control_mac_sm(global_e2_node_id_t* id, mac_ctrl_msg_t* ctrl)
   sm_ag_if_wr_t wr;
   wr.type = CONTROL_SM_AG_IF_WR;
   wr.ctrl.type = MAC_CTRL_REQ_V0;
-  wr.ctrl.mac_ctrl.hdr.dummy = 1; // was =0. changed because some assert failed.
+  wr.ctrl.mac_ctrl.hdr.dummy = 0;
   wr.ctrl.mac_ctrl.msg = cp_mac_ctrl_msg(ctrl);
 
   control_sm_xapp_api(id, SM_MAC_ID, &wr);
 }
-
 
 //////////////////////////////////////
 // RLC SM   
@@ -466,12 +457,12 @@ void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
     assert(0!=0 && "not foreseen case");
   }
 
-  //sm_ag_if_wr_t wr;
-  //wr.type = CONTROL_SM_AG_IF_WR;
-  //wr.ctrl.type = SLICE_CTRL_REQ_V0;
-  //wr.ctrl.slice_req_ctrl.msg = 
-  slice_ctrl_req_data_t cp = {.msg = cp_slice_ctrl_msg(ctrl)};  
-  control_sm_xapp_api(id, SM_SLICE_ID, &cp);
+  sm_ag_if_wr_t wr;
+  wr.type = CONTROL_SM_AG_IF_WR;
+  wr.ctrl.type = SLICE_CTRL_REQ_V0;
+  wr.ctrl.slice_req_ctrl.msg = cp_slice_ctrl_msg(ctrl);
+
+  control_sm_xapp_api(id, SM_SLICE_ID,  &wr);
 }
 
 //////////////////////////////////////

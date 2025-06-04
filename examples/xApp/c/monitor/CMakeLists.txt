@@ -1,3 +1,5 @@
+# File modified by https://github.com/dhanraj-s
+
 add_subdirectory(RRC_MESSAGES)
 
 add_executable(xapp_kpm_moni 
@@ -80,3 +82,18 @@ target_link_libraries(xapp_rc_moni
                      -lsctp
                      -ldl
                      )
+
+add_executable(xapp_new_moni 
+		xapp_new_moni.c
+                ../../../../src/util/alg_ds/alg/defer.c
+              )
+
+ target_link_libraries(xapp_new_moni
+                      PUBLIC
+                      e42_xapp
+                      -pthread
+                      -lsctp
+                      -ldl
+                      )
+
+

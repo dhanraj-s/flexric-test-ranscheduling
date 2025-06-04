@@ -20,6 +20,9 @@
  */
 
 
+// File modified by https://github.com/dhanraj-s
+// Only some print statements added for debugging.
+
 #include "plugin_ric.h"
 
 #include "util/alg_ds/alg/alg.h"
@@ -196,7 +199,8 @@ sm_ric_t* sm_plugin_ric(plugin_ric_t* p, uint16_t  ran_func_id)
 {
   assert(p != NULL);
   assert(ran_func_id > 0 && "Reserved value");
-
+  printf("sm_plugin_ric:\n");
+  printf("\tran_func_id: %d\n", ran_func_id);
   void* start_it = assoc_front(&p->sm_ds);
   void* end_it = assoc_end(&p->sm_ds);
   void* it = find_if(&p->sm_ds, start_it, end_it, &ran_func_id, eq_ran_func_id); 

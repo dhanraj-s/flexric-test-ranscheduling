@@ -1,0 +1,23 @@
+The following files have been modified by me (https://github.com/dhanraj-s):
+
+modified:   examples/xApp/c/kpm_rc/CMakeLists.txt
+modified:   examples/xApp/c/monitor/CMakeLists.txt
+modified:   src/sm/mac_sm/ie/mac_data_ie.c
+modified:   src/sm/mac_sm/ie/mac_data_ie.h
+modified:   src/sm/mac_sm/mac_sm_ric.c
+modified:   src/xApp/e42_xapp.c
+modified:   src/xApp/e42_xapp_api.c
+modified:   src/xApp/msg_generator_xapp.c
+modified:   src/xApp/plugin_ric.c
+modified:   src/xApp/swig/swig_wrapper.cpp
+modified:   src/xApp/swig/swig_wrapper.h
+
+The following have been added by me:
+
+build_script.sh
+build_script_multilang.sh
+examples/xApp/c/kpm_rc/xapp_scheduler.c
+examples/xApp/c/monitor/xapp_new_moni.c
+src/xApp/swig/swig_wrapper_bad.cpp
+src/xApp/swig/swig_wrapper_bkp.cpp
+src/xApp/swig/swig_wrapper_bkp.h

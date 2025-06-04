@@ -20,6 +20,9 @@
  */
 
 
+// File modified by https://github.com/dhanraj-s
+// Code added from the repo: https://github.com/lgs96/flexric
+
 #ifndef MAC_DATA_INFORMATION_ELEMENTS_H
 #define MAC_DATA_INFORMATION_ELEMENTS_H
 
@@ -178,11 +181,35 @@ bool eq_mac_ctrl_hdr(mac_ctrl_hdr_t* m0, mac_ctrl_hdr_t* m1);
 // RIC Control Message 
 /////////////////////////////////////
 
+// typedef struct {
+//   uint32_t action;
+// } mac_ctrl_msg_t;
+
+// void free_mac_ctrl_msg( mac_ctrl_msg_t* src); 
+
+// mac_ctrl_msg_t cp_mac_ctrl_msg(mac_ctrl_msg_t* src);
+
+// bool eq_mac_ctrl_msg(mac_ctrl_msg_t* m0, mac_ctrl_msg_t* m1);
+
+typedef struct {
+    uint32_t user_id;          // Unique identifier for the user
+    uint32_t mcs;      // MCS level to be alloacted to this user
+    uint32_t num_rb;   // Number of Resource block allocated to this user
+} user_resource_t;
+
 typedef struct {
   uint32_t action;
+  uint32_t num_users;
+  user_resource_t *resource_alloc;
 } mac_ctrl_msg_t;
 
 void free_mac_ctrl_msg( mac_ctrl_msg_t* src); 
+
+user_resource_t* allocate_user_resources(int num_users);
+
+void set_user_resource(user_resource_t* resource_alloc, int index, uint32_t user_id, uint32_t mcs, uint32_t num_rb);
+
+void free_user_resources(user_resource_t* resource_alloc);
 
 mac_ctrl_msg_t cp_mac_ctrl_msg(mac_ctrl_msg_t* src);
 

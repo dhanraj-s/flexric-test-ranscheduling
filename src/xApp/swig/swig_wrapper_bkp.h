@@ -1,6 +1,3 @@
-// File modified by https://github.com/dhanraj-s
-// Code added from https://github.com/lgs96/flexric
-
 #ifndef SWIG_WRAPPER_H
 #define SWIG_WRAPPER_H 
 
@@ -60,10 +57,6 @@ struct mac_cb {
 int report_mac_sm(global_e2_node_id_t* id, Interval inter, mac_cb* handler);
 
 void rm_report_mac_sm(int);
-
-// 231009 Goodsol
-void control_mac_sm(global_e2_node_id_t* id, mac_ctrl_msg_t* ctrl);
-
 
 //////////////////////////////////////
 // RLC SM   

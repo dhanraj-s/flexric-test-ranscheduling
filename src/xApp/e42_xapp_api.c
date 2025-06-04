@@ -20,6 +20,9 @@
  */   
  
 
+// File modified by https://github.com/dhanraj-s
+// Only some print statements added for debugging.
+
 #include "e42_xapp_api.h"
 #include "e42_xapp.h"
 #include "../util/conf_file.h"
@@ -197,7 +200,11 @@ sm_ans_xapp_t control_sm_xapp_api(global_e2_node_id_t* id, uint32_t ran_func_id,
   assert(id != NULL);
   assert(ran_func_id == SM_MAC_ID || ran_func_id == SM_SLICE_ID || ran_func_id == SM_TC_ID || ran_func_id == SM_RC_ID);
   assert(wr != NULL);
-
+  printf("control_sm_xapp_api\n"); // this is being printed.
+  printf("\theader dummy: %d\n", ((sm_ag_if_wr_t*)wr)->ctrl.mac_ctrl.hdr.dummy);
+  printf("\ttype: %d\n", ((sm_ag_if_wr_t*)wr)->type);
+  printf("\tctrl type: %d\n", ((sm_ag_if_wr_t*)wr)->ctrl.type);
+  printf("\tmsg action: %d\n", ((sm_ag_if_wr_t*)wr)->ctrl.mac_ctrl.msg.action);
   return control_sm_sync_xapp(xapp, id, ran_func_id, wr);
 }
 

@@ -19,7 +19,9 @@
  *      contact@openairinterface.org
  */
 
+// File modified by https://github.com/dhanraj-s
 
+#include <stdio.h>
 
 #include "mac_sm_ric.h"
 #include "mac_sm_id.h"
@@ -111,7 +113,27 @@ sm_ctrl_req_data_t ric_on_control_req_mac_sm_ric(sm_ric_t const* sm_ric, void* c
 {
   assert(sm_ric != NULL); 
   assert(ctrl != NULL); 
-  mac_ctrl_req_data_t const* req = (mac_ctrl_req_data_t const*)ctrl;
+
+  printf("ric_on_control_req_mac_sm_ric:\n");
+  printf("\theader dummy: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.mac_ctrl.hdr.dummy);
+  printf("\ttype: %d\n", ((sm_ag_if_wr_t*)ctrl)->type);
+  printf("\tctrl type: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.type);
+  printf("\tmsg action: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.mac_ctrl.msg.action);
+
+
+
+  // BUG: Simple casting will not work. Need to manually populate
+  // mac_ctrl_req_data_t
+  // mac_ctrl_req_data_t const* req = (mac_ctrl_req_data_t const*)ctrl;
+  
+  // Manually filling in:
+  sm_ag_if_wr_t* src = (sm_ag_if_wr_t*) ctrl;
+
+  mac_ctrl_req_data_t* req = calloc(1, sizeof(mac_ctrl_req_data_t));
+  req->hdr.dummy = src->ctrl.mac_ctrl.hdr.dummy;
+  req->msg = cp_mac_ctrl_msg(&src->ctrl.mac_ctrl.msg);
+
+
   assert(req->hdr.dummy == 1);
   assert(req->msg.action == 42);
 

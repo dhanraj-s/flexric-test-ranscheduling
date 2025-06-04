@@ -19,9 +19,13 @@
  *      contact@openairinterface.org
  */
 
+// File modified by https://github.com/dhanraj-s
+// Only some print statements added for debugging.
+
 #include "msg_generator_xapp.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 ric_subscription_request_t generate_subscription_request(ric_gen_id_t ric_id , sm_ric_t const* sm, void* cmd)
 {
@@ -122,9 +126,16 @@ ric_control_request_t generate_ric_control_request(ric_gen_id_t ric_id, sm_ric_t
 {
   assert(sm != NULL);
 
+  printf("generate_ric_control_request:\n");
+  printf("\theader dummy: %d\n", ((sm_ag_if_wr_t*)ctrl_msg)->ctrl.mac_ctrl.hdr.dummy);
+  printf("\ttype: %d\n", ((sm_ag_if_wr_t*)ctrl_msg)->type);
+  printf("\tctrl type: %d\n", ((sm_ag_if_wr_t*)ctrl_msg)->ctrl.type);
+  printf("\tmsg action: %d\n", ((sm_ag_if_wr_t*)ctrl_msg)->ctrl.mac_ctrl.msg.action);
+
   sm_ctrl_req_data_t const data = sm->proc.on_control_req(sm,  ctrl_msg);
   assert(data.len_hdr < 2049 && "Check that the SM is built with the same flags as FlexRIC ");
   assert(data.len_msg < 2049 && "Check that the SM is built with the same flags as FlexRIC");
+  printf("ric_control_request_t: back from on_control_req\n");
 
   ric_control_request_t cr = {0}; 
   cr.ric_id = ric_id;
