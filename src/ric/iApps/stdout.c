@@ -19,7 +19,7 @@
  *      contact@openairinterface.org
  */
 
-
+#include <unistd.h>
 
 #include "stdout.h"
 #include "../../sm/mac_sm/ie/mac_data_ie.h"    // for mac_ind_msg_t
@@ -76,6 +76,10 @@ void init_fp(FILE** fp, const char* path)
 static
 void init_fp(void)
 {
+  char cwd[1024];
+getcwd(cwd, sizeof(cwd));
+printf("Current working directory: %s\n", cwd);
+
   assert(fp == NULL);
   assert(file_path != NULL);
 

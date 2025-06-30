@@ -191,6 +191,8 @@ bool eq_mac_ctrl_hdr(mac_ctrl_hdr_t* m0, mac_ctrl_hdr_t* m1);
 
 // bool eq_mac_ctrl_msg(mac_ctrl_msg_t* m0, mac_ctrl_msg_t* m1);
 
+
+// This code is from the repo: https://github.com/lgs96/flexric
 typedef struct {
     uint32_t user_id;          // Unique identifier for the user
     uint32_t mcs;      // MCS level to be alloacted to this user

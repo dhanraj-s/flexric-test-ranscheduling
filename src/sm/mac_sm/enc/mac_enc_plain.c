@@ -117,15 +117,30 @@ byte_array_t mac_enc_ctrl_hdr_plain(mac_ctrl_hdr_t const* ctrl_hdr)
 
 byte_array_t mac_enc_ctrl_msg_plain(mac_ctrl_msg_t const* ctrl_msg)
 {
+  // literally a memberwise copy. not useful if one of the members is a pointer
+  // pointing to a heap data structure.
   assert(ctrl_msg != NULL);
 
   byte_array_t  ba = {0};
-  ba.len = sizeof(mac_ctrl_msg_t);
+  /*ba.len = sizeof(mac_ctrl_msg_t);
   ba.buf = calloc(ba.len, sizeof(uint8_t)); 
   assert(ba.buf != NULL);
 
-  memcpy(ba.buf, ctrl_msg, ba.len);
+  memcpy(ba.buf, ctrl_msg, ba.len);*/
 
+  ba.len = sizeof(uint32_t) + sizeof(uint32_t) + (ctrl_msg->num_users * sizeof(user_resource_t));
+  ba.buf = calloc(ba.len, sizeof(uint8_t));
+  assert(ba.buf != NULL);
+
+  uint32_t mask = 0x000000ff;
+  for(int i=0; i<4; ++i) {
+    ba.buf[i] = ctrl_msg->action & (mask << (8 * (3-i)));
+    ba.buf[4+i] = ctrl_msg->num_users & (mask << (8 * (3-i)));
+  }
+  for(int i=0; i<ctrl_msg->num_users; ++i) {
+    memcpy(&ba.buf[8+i*(sizeof(user_resource_t))], &(ctrl_msg->resource_alloc[i]), sizeof(user_resource_t));
+  }
+  
   return ba;
 }
 

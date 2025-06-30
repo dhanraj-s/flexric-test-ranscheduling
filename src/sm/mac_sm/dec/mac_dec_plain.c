@@ -95,9 +95,16 @@ mac_ctrl_hdr_t mac_dec_ctrl_hdr_plain(size_t len, uint8_t const ctrl_hdr[len])
 
 mac_ctrl_msg_t mac_dec_ctrl_msg_plain(size_t len, uint8_t const ctrl_msg[len])
 {
-  assert(len == sizeof(mac_ctrl_msg_t)); 
+  //assert(len == sizeof(mac_ctrl_msg_t)); 
   mac_ctrl_msg_t ret;
-  memcpy(&ret, ctrl_msg, len);
+  //memcpy(&ret, ctrl_msg, len);
+
+  ret.action = ctrl_msg[0] | ctrl_msg[1] | ctrl_msg[2] | ctrl_msg[3];
+  ret.num_users = ctrl_msg[4] | ctrl_msg[5] | ctrl_msg[6] | ctrl_msg[7];
+  ret.resource_alloc = calloc(ret.num_users, sizeof(user_resource_t));
+  for(int i=0; i<ret.num_users; ++i) {
+    memcpy(&(ret.resource_alloc[i]), &ctrl_msg[8+i*(sizeof(user_resource_t))], sizeof(user_resource_t));
+  }
   return ret;
 }
 

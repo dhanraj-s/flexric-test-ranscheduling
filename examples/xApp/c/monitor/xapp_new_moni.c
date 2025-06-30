@@ -21,30 +21,51 @@ void print_bsr(uint32_t bsr) {
   printf(" (= %u)\n", bsr);
 }
 
+#define MAX_NUM_USERS 64
+
+static int rnti[MAX_NUM_USERS];
+static int num_users;
+
 static
-void sm_cb_mac(sm_ag_if_rd_t const* rd)
-{
+void sm_cb_mac(sm_ag_if_rd_t *rd)
+{ 
   assert(rd != NULL);
   assert(rd->type ==INDICATION_MSG_AGENT_IF_ANS_V0);
   assert(rd->ind.type == MAC_STATS_V0);
  
-  int64_t now = time_now_us();
-  if(cnt_mac % 100 == 0){
-    printf("MAC ind_msg latency = %ld μs\n", now - rd->ind.mac.msg.tstamp);
-  
-    uint32_t sz_stat_list = rd->ind.mac.msg.len_ue_stats;
-    mac_ue_stats_impl_t *stat_list = rd->ind.mac.msg.ue_stats;
+  //int64_t now = time_now_us();
+  //printf("MAC ind_msg latency = %ld μs\n", now - rd->ind.mac.msg.tstamp);
 
-    for(int i = 0; i < sz_stat_list; ++i) {
-      printf("Msg %d:\n", i);
-      print_bsr(stat_list[i].bsr);
-      printf("\tPHR:%d\n", stat_list[i].phr);
-      printf("\tWB_CQI:%d\n", stat_list[i].wb_cqi);
-      printf("\tUL_AGGR_PRB:%d\n",stat_list[i].ul_aggr_prb);
-    }
+  uint32_t sz_stat_list = rd->ind.mac.msg.len_ue_stats;
+  mac_ue_stats_impl_t *stat_list = rd->ind.mac.msg.ue_stats;
+  num_users = sz_stat_list;
+  for(int i = 0; i < sz_stat_list; ++i) {
+  //  printf("Msg %d:\n", i);
+  //  print_bsr(stat_list[i].bsr);
+  //  printf("\tRNTI:%d\n", stat_list[i].rnti);
+  //  printf("\tPHR:%d\n", stat_list[i].phr);
+  //  printf("\tWB_CQI:%d\n", stat_list[i].wb_cqi);
+  //  printf("\tUL_AGGR_PRB:%d\n",stat_list[i].ul_aggr_prb);
+  //  printf("\tFRAME: %d\n", stat_list->frame);
+  //  printf("\tSLOT: %d\n", stat_list->slot);
+    rnti[i] = stat_list[i].rnti;
   }
 
   cnt_mac++;
+}
+
+void fill_mac_ctrl_msg(sm_ag_if_wr_t *wr) {
+  wr->type = CONTROL_SM_AG_IF_WR;
+  wr->ctrl.mac_ctrl.hdr.dummy = 1;
+  wr->ctrl.mac_ctrl.msg.action = 42;
+
+  wr->ctrl.mac_ctrl.msg.num_users = num_users;
+  wr->ctrl.mac_ctrl.msg.resource_alloc = calloc(num_users, sizeof(user_resource_t));
+  for(int i=0; i<num_users; ++i) {
+    wr->ctrl.mac_ctrl.msg.resource_alloc[i].mcs = 5;
+    wr->ctrl.mac_ctrl.msg.resource_alloc[i].num_rb = 5;
+    wr->ctrl.mac_ctrl.msg.resource_alloc[i].user_id = rnti[i];
+  }
 }
 
 int main(int argc, char **argv)
@@ -61,12 +82,16 @@ int main(int argc, char **argv)
   assert(nodes.len > 0);
 
   // MAC indication
-  const char* i_0 = "1_ms";
-  sm_ans_xapp_t* mac_handle = NULL;
+  const char* i_0 = "5_ms";
+  sm_ans_xapp_t* mac_handle_report = NULL;
 
-  if(nodes.len > 0)
-    mac_handle = calloc(nodes.len, sizeof(*mac_handle));
+  // MAC control
+  sm_ans_xapp_t* mac_handle_control = NULL;
 
+  if(nodes.len > 0) {
+    mac_handle_report = calloc(nodes.len, sizeof(*mac_handle_report));
+    mac_handle_control = calloc(nodes.len, sizeof(*mac_handle_control));
+  }
   for(int i = 0; i < nodes.len; ++i) {
     e2_node_connected_xapp_t* n = &nodes.n[i];
 
@@ -74,9 +99,35 @@ int main(int argc, char **argv)
       printf("Registered node %d ran func id = %d \n ", i, n->rf[j].id);
     
     if(n->id.type == ngran_gNB || n->id.type == ngran_eNB){
-      mac_handle[i] = report_sm_xapp_api(&nodes.n[i].id, 142, (void*)i_0, sm_cb_mac);
-      assert(mac_handle[i].success == true);
+      mac_handle_report[i] = report_sm_xapp_api(&nodes.n[i].id, 142, (void*)i_0, sm_cb_mac);
+      assert(mac_handle_report[i].success == true);
+
+      mac_ctrl_req_data_t mac_data; //= {.hdr.dummy=1, .msg.action=42, .msg.num_users=1, .msg.resource_alloc=NULL};
+      
+      usleep(500);
+      while(num_users==0);
+      printf("Found %d users.\n", num_users);
+      sm_ag_if_wr_t wr;
+      fill_mac_ctrl_msg(&wr);
+      mac_handle_control[i] = control_sm_xapp_api(&nodes.n[i].id, 142, &wr);
+      assert(mac_handle_control[i].success == true);
     }
-  sleep(10);
   }
+  xapp_wait_end_api();
+
+  for(int i = 0; i < nodes.len; ++i){
+    // Remove the handle previously returned
+    if(mac_handle_report[i].u.handle != 0 )
+      rm_report_sm_xapp_api(mac_handle_report[i].u.handle);
+  }
+
+  if(nodes.len > 0){
+    free(mac_handle_report);
+  }
+
+  //Stop the xApp
+  while(try_stop_xapp_api() == false)
+    usleep(1000);
+
+  printf("Test xApp run SUCCESSFULLY\n");
 }
