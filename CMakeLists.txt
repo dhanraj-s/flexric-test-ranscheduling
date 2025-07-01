@@ -206,6 +206,7 @@ set_property(CACHE E2AP_VERSION PROPERTY STRINGS "E2AP_V1" "E2AP_V2" "E2AP_V3")
 message(STATUS "Selected E2AP_VERSION: ${E2AP_VERSION}")
 
 if(E2AP_VERSION STREQUAL "E2AP_V1")
+#  add_compile_definitions(E2AP_V1)
   add_library(e2ap_ran_func_obj OBJECT
               src/lib/e2ap/v1_01/e2ap_types/common/e2ap_ran_function.c )
   add_library(e2ap_plmn_obj OBJECT
@@ -213,6 +214,7 @@ if(E2AP_VERSION STREQUAL "E2AP_V1")
   add_library(e2ap_global_node_id_obj OBJECT
               src/lib/e2ap/v1_01/e2ap_types/common/e2ap_global_node_id.c )
 elseif(E2AP_VERSION STREQUAL "E2AP_V2")
+#  add_compile_definitions(E2AP_V2)
   add_library(e2ap_ran_func_obj OBJECT
               src/lib/e2ap/v2_03/e2ap_types/common/e2ap_ran_function.c )
   add_library(e2ap_plmn_obj OBJECT
@@ -220,6 +222,7 @@ elseif(E2AP_VERSION STREQUAL "E2AP_V2")
   add_library(e2ap_global_node_id_obj OBJECT
               src/lib/e2ap/v2_03/e2ap_types/common/e2ap_global_node_id.c )
 elseif(E2AP_VERSION STREQUAL "E2AP_V3")
+#  add_compile_definitions(E2AP_V3)
   add_library(e2ap_ran_func_obj OBJECT
               src/lib/e2ap/v3_01/e2ap_types/common/e2ap_ran_function.c )
   add_library(e2ap_plmn_obj OBJECT
@@ -244,6 +247,7 @@ set_property(CACHE SM_ENCODING_KPM PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
 message(STATUS "Selected KPM SM_ENCODING: ${SM_ENCODING_KPM}")
 
 set(KPM_VERSION "KPM_V2_03" CACHE STRING "The KPM SM version to use")
+# add_compile_definitions(KPM_V2_03)
 set_property(CACHE SM_ENCODING_KPM PROPERTY STRINGS  "KPM_V2_01" "KPM_V2_03" "KPM_V3_00")
 message(STATUS "Selected KPM Version: ${KPM_VERSION}")
 

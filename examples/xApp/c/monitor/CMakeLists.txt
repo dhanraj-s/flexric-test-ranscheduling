@@ -96,4 +96,31 @@ add_executable(xapp_new_moni
                       -ldl
                       )
 
+add_executable(xapp_scheduling 
+		xapp_scheduling.c
+                ../../../../src/util/alg_ds/alg/defer.c
+              )
 
+ target_link_libraries(xapp_scheduling
+                      PUBLIC
+                      e42_xapp
+                      -pthread
+                      -lsctp
+                      -ldl
+                      )
+
+                      
+add_executable(xapp_scheduling_copy 
+		xapp_scheduling_copy.c
+                ../../../../src/util/alg_ds/alg/defer.c
+              )
+
+ target_link_libraries(xapp_scheduling_copy
+                      PUBLIC
+                      e42_xapp
+                      -pthread
+                      -lsctp
+                      -ldl
+                      )
+
+                      

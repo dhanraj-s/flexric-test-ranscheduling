@@ -26,6 +26,8 @@ void print_bsr(uint32_t bsr) {
 static int rnti[MAX_NUM_USERS];
 static int num_users;
 
+e2_node_arr_xapp_t g_nodes;
+
 static
 void sm_cb_mac(sm_ag_if_rd_t *rd)
 { 
@@ -62,8 +64,8 @@ void fill_mac_ctrl_msg(sm_ag_if_wr_t *wr) {
   wr->ctrl.mac_ctrl.msg.num_users = num_users;
   wr->ctrl.mac_ctrl.msg.resource_alloc = calloc(num_users, sizeof(user_resource_t));
   for(int i=0; i<num_users; ++i) {
-    wr->ctrl.mac_ctrl.msg.resource_alloc[i].mcs = 5;
-    wr->ctrl.mac_ctrl.msg.resource_alloc[i].num_rb = 5;
+    wr->ctrl.mac_ctrl.msg.resource_alloc[i].mcs = 10;
+    wr->ctrl.mac_ctrl.msg.resource_alloc[i].num_rb = 10;
     wr->ctrl.mac_ctrl.msg.resource_alloc[i].user_id = rnti[i];
   }
 }
@@ -71,23 +73,17 @@ void fill_mac_ctrl_msg(sm_ag_if_wr_t *wr) {
 int main(int argc, char **argv)
 {
   fr_args_t args = init_fr_args(argc, argv);
-
   //Init the xApp
   init_xapp_api(&args);
   sleep(1);
-
   e2_node_arr_xapp_t nodes = e2_nodes_xapp_api();
   defer({ free_e2_node_arr_xapp(&nodes); });
-
   assert(nodes.len > 0);
-
   // MAC indication
   const char* i_0 = "5_ms";
   sm_ans_xapp_t* mac_handle_report = NULL;
-
   // MAC control
   sm_ans_xapp_t* mac_handle_control = NULL;
-
   if(nodes.len > 0) {
     mac_handle_report = calloc(nodes.len, sizeof(*mac_handle_report));
     mac_handle_control = calloc(nodes.len, sizeof(*mac_handle_control));
