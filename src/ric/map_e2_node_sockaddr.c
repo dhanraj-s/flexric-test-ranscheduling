@@ -134,6 +134,7 @@ global_e2_node_id_t* rm_map_sad_e2_node(map_e2_node_sockaddr_t* m, sctp_info_t c
 
   lock_guard(&m->mtx);
   void (*free_sctp_info)(void*) = NULL;
+  printf("rm_map_sad_e2_node: bi_map_extract_right called below\n");
   global_e2_node_id_t* id = bi_map_extract_right(&m->map, (sctp_info_t*) s, sizeof(sctp_info_t), free_sctp_info);
   return id;
 }

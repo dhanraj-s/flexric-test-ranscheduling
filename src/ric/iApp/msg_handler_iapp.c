@@ -191,6 +191,7 @@ e2ap_msg_t e2ap_handle_e42_ric_control_ack_iapp(e42_iapp_t* iapp, const e2ap_msg
 
   printf("[iApp]: RIC_CONTROL_ACKNOWLEDGE tx\n");
 
+  printf("e2ap_handle_e42_ric_control_ack_iapp: about to call rm_map_ric_id (xapp_ric_id=%d)\n",x.xapp_id);
   rm_map_ric_id(&iapp->map_ric_id, &x);
 
   e2ap_msg_t none = {.type = NONE_E2_MSG_TYPE};
@@ -395,6 +396,7 @@ e2ap_msg_t e2ap_handle_e42_ric_control_request_iapp(e42_iapp_t* iapp, const e2ap
                           .ric_req_type = CONTROL_RIC_REQUEST_TYPE }; 
   n.ric_id.ric_req_id = new_ric_id;
 
+  printf("e2ap_handle_ric_control_request_iapp: about to call add_map_ric_id (ric_req_id=%d, xapp_ric_id=%d)\n",n.ric_id.ric_req_id,xapp_ric_id.xapp_id);
   add_map_ric_id(&iapp->map_ric_id, &n, &xapp_ric_id);
   rc = pthread_rwlock_unlock(&iapp->map_ric_id.rw); 
   assert(rc == 0);

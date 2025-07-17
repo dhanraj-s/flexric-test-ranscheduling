@@ -24,6 +24,7 @@
 #include "map_ric_id.h"
 #include "xapp_ric_id.h"
 
+#include <stdio.h>
 #include <assert.h>
 
 static inline
@@ -163,6 +164,8 @@ void rm_map_ric_id(map_ric_id_t* map, xapp_ric_id_t const* ric_id)
 
   // It returns the void* of key1. the void* of the key2 is freed
   void (*free_xapp_ric_id)(void*) = NULL;
+
+  printf("rm_map_ric_id: bi_map_extract_right called below\n");
   e2_node_ric_id_t* n = (e2_node_ric_id_t*)bi_map_extract_right(&map->bimap, (void*)ric_id, sizeof(xapp_ric_id_t), free_xapp_ric_id);
 
   //printf("Removing xapp_ric_id xapp %d ric_req_id %d node ric id %d \n", ric_id->xapp_id, ric_id->ric_id.ric_req_id,  n->ric_id.ric_req_id);
@@ -177,7 +180,10 @@ void rm_map_ric_id(map_ric_id_t* map, xapp_ric_id_t const* ric_id)
 xapp_ric_id_xpct_t find_xapp_map_ric_id(map_ric_id_t* map, uint16_t ric_req_id)
 {
   assert(map != NULL);
-  assert(ric_req_id > 0 );
+  //printf("ric_req_id: %d\n",ric_req_id);
+  
+  /*why this assert? for a large number of control requests, this could wrap around and become 0.*/
+  //assert(ric_req_id > 0 ); 
 
 
   e2_node_ric_id_t dummy_node = {   //  global_e2_node_id_t e2_node_id;

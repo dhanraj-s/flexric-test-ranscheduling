@@ -180,7 +180,8 @@ void add_reg_e2_node(reg_e2_nodes_t* i, global_e2_node_id_t const* id, size_t le
 //    free(old_arr);
 //  }
 
-  global_e2_node_id_t cp_id = cp_global_e2_node_id(id); 
+  global_e2_node_id_t cp_id = cp_global_e2_node_id(id);
+  printf("add_reg_e2_node: assoc_insert called below\n\n"); 
   assoc_insert(&i->node_to_rf, &cp_id, sizeof(global_e2_node_id_t), rf_cca);
 
 //  void* it_n = assoc_front(&i->node_to_rf);

@@ -389,9 +389,9 @@ mac_ctrl_msg_t cp_mac_ctrl_msg(mac_ctrl_msg_t* src) {
     assert(src != NULL);
 
     // Debug: Print src structure details
-    printf("src->action: %u\n", src->action);
-    printf("src->num_users: %u\n", src->num_users);
-    printf("src->resource_alloc address: %p\n", (void*)src->resource_alloc);
+    // printf("src->action: %u\n", src->action);
+    // printf("src->num_users: %u\n", src->num_users);
+    // printf("src->resource_alloc address: %p\n", (void*)src->resource_alloc);
 
     mac_ctrl_msg_t dst = {0};
 
@@ -414,16 +414,16 @@ mac_ctrl_msg_t cp_mac_ctrl_msg(mac_ctrl_msg_t* src) {
     }
 
     
-    printf("dst->action: %u\n", dst.action);
-    printf("dst->num_users: %u\n", dst.num_users);
-    printf("dst->resource_alloc address: %p\n", (void*)dst.resource_alloc);
+    // printf("dst->action: %u\n", dst.action);
+    // printf("dst->num_users: %u\n", dst.num_users);
+    // printf("dst->resource_alloc address: %p\n", (void*)dst.resource_alloc);
 
-    for (uint32_t i = 0; i < dst.num_users; i++) {
-        printf("[MAC_DATA] User %u Info:\n", i + 1);
-        printf("    User ID: %u\n", dst.resource_alloc[i].user_id);
-        printf("    MCS Level: %u\n", dst.resource_alloc[i].mcs);
-        printf("    Number of Resource Blocks: %u\n", dst.resource_alloc[i].num_rb);
-    }
+    // for (uint32_t i = 0; i < dst.num_users; i++) {
+    //     printf("[MAC_DATA] User %u Info:\n", i + 1);
+    //     printf("    User ID: %u\n", dst.resource_alloc[i].user_id);
+    //     printf("    MCS Level: %u\n", dst.resource_alloc[i].mcs);
+    //     printf("    Number of Resource Blocks: %u\n", dst.resource_alloc[i].num_rb);
+    // }
 
 
     return dst;

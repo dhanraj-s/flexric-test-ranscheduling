@@ -19,6 +19,8 @@
  *      contact@openairinterface.org
  */
 
+#include <time.h>
+#include "pending_event_xapp_sem.h"
 
 #include <assert.h>
 #include <pthread.h>
@@ -40,6 +42,7 @@
 
 #include "../sm/rlc_sm/rlc_sm_id.h"
 
+struct timespec control_req_time, control_ack_time;
 static inline
 bool check_valid_msg_type(e2_msg_type_t msg_type)
 {
@@ -78,7 +81,8 @@ void add_pending_event_xapp(e42_xapp_t* xapp, pending_event_xapp_t* ev)
   assert(ev != NULL);
   assert(ev->wait_ms > 0);
 
-  int fd_timer = create_timer_ms_asio_xapp(&xapp->io, ev->wait_ms, ev->wait_ms); 
+  int fd_timer = create_timer_ms_asio_xapp(&xapp->io, ev->wait_ms, ev->wait_ms);
+  printf("add_pending_event_xapp: calling add_pending_event\n"); 
   add_pending_event(&xapp->pending, fd_timer, ev);
 }
 
@@ -289,14 +293,16 @@ sm_ind_data_t ind_sm_payload(ric_indication_t const* src)
 #endif
   act_proc_ans_t rv = find_act_proc(&xapp->act_proc, ack->ric_id.ric_req_id);
   assert(rv.ok == true && "ric_req_id not registered in the registry");
-
+  clock_gettime(CLOCK_REALTIME, &control_ack_time);
   printf("[xApp]: CONTROL ACK rx\n");
-
+  printf("Req<->Ack: %lf us", (control_ack_time.tv_sec-control_req_time.tv_sec)*1e6+(control_ack_time.tv_nsec-control_req_time.tv_nsec)/1000);
   // A pending event is created along with a timer of 5000 ms,
   // after which an event will be generated
   pending_event_xapp_t ev = {.ev = E42_RIC_CONTROL_REQUEST_PENDING_EVENT, .id = rv.val.id };
 
   // Stop the timer
+  sem_wait(&non_empty);
+  printf("e2ap_handle_control_ack_xapp: rm_pending_event_xapp called\n");
   rm_pending_event_xapp(xapp, &ev);
 
   // Unblock UI thread  
@@ -576,14 +582,17 @@ e2ap_msg_t e2ap_handle_e42_ric_control_request_xapp(e42_xapp_t* xapp, const e2ap
   defer({ free_byte_array(ba_msg) ;}; );
 
   e2ap_send_bytes_xapp(&xapp->ep, ba_msg);
-
+  clock_gettime(CLOCK_REALTIME, &control_req_time);
   printf("[xApp]: CONTROL-REQUEST tx \n");
 
   pending_event_xapp_t ev = {.ev = E42_RIC_CONTROL_REQUEST_PENDING_EVENT,
     .id = cr->ctrl_req.ric_id,
     .wait_ms = 10000};
-  add_pending_event_xapp(xapp, &ev);
 
+  printf("e2ap_handle_e42_ric_control_request_xapp: calling add_pending_event_xapp\n");
+  
+  add_pending_event_xapp(xapp, &ev);
+  sem_post(&non_empty);
 
   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
   return ans;

@@ -183,6 +183,8 @@ void load_plugin_ric(plugin_ric_t* p, const char* path)
   assert(sm != NULL);
   const uint16_t ran_func_id = sm->ran_func_id;
   assert(ran_func_id > 0 && "Reserved RAN function ID");
+
+  printf("load_plugin_ric: assoc_insert called here\n");
   assoc_insert(&p->sm_ds, &ran_func_id, sizeof(ran_func_id), sm);
   
   printf("[NEAR-RIC]: Loading SM ID = %d with def = %s \n", sm->ran_func_id, sm->ran_func_name);

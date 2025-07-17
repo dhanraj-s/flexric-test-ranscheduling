@@ -55,6 +55,7 @@ void scheduling_control(sm_ag_if_rd_t const *rd) {
   sm_ans_xapp_t mac_ctrl_handle = control_sm_xapp_api(global_e2_node_id, RAN_FUNCTION_MAC, &wr);
 
   assert(mac_ctrl_handle.success == true);
+  free(resource_allocation);
 }
 
 int main(int argc, char **argv)
@@ -78,7 +79,7 @@ int main(int argc, char **argv)
 
 
   /*subscribe to the MAC report service.*/
-  char const *ind_msg_period = "10_ms";
+  char const *ind_msg_period = "1_ms";
   
   
   sm_ans_xapp_t mac_report_handle = 

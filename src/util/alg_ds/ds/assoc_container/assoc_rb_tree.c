@@ -35,6 +35,8 @@ SOFTWARE.
     Lemma 1: a red-black tree with n internal nodes has a height at most 2lg(n+1)
 */
 
+#include <stdio.h>
+
 #include "assoc_rb_tree.h"
 #include <assert.h>
 #include <stddef.h>
@@ -412,6 +414,8 @@ assoc_node_t* find_rb_tree(assoc_rb_tree_t* tree, assoc_node_t* node, void* key)
 static
 void assoc_rb_tree_extract_node(assoc_rb_tree_t* tree, assoc_node_t* z_node)
 {
+
+  //printf("assoc_rb_tree_extract_node: HI\n");
   assert(tree != NULL);
   assert(z_node != NULL);
   assert(z_node != tree->dummy && "Trying to extract a key not found in the tree" );
@@ -450,6 +454,8 @@ void assoc_rb_tree_extract_node(assoc_rb_tree_t* tree, assoc_node_t* z_node)
 
 void* assoc_rb_tree_extract(assoc_rb_tree_t* tree, void* key)
 {
+  printf("assoc_rb_tree_extract: HI!\n\n");
+
   assert(tree != NULL);
   assert(key != NULL);
 

@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <stdio.h>
+
 #include "bimap.h"
 #include "assoc_generic.h"
 
@@ -70,6 +72,7 @@ void bi_map_insert(bi_map_t* map, void const* key1, size_t key_sz1, void const* 
   int cmp = map->right.comp(key2, val1);
   assert(cmp == 0 );
 
+  printf("bi_map_insert: inserting into left rb_tree (key=%d)\n", *(int*)key1);
   assoc_insert(&map->left, key1, key_sz1, val1);
 
   void* val2 = malloc(key_sz1);
@@ -82,6 +85,7 @@ void bi_map_insert(bi_map_t* map, void const* key1, size_t key_sz1, void const* 
   cmp = map->left.comp(key1, val2);
   assert(cmp == 0 );
 
+  printf("bi_map_insert: inserting into right rb_tree (value=%d)\n", *(int*)val2);
   assoc_insert(&map->right, key2, key_sz2, val2);
 }
 
@@ -92,6 +96,8 @@ void* bi_map_extract_left(bi_map_t* map, void* key1, size_t key1_sz, free_fp_key
   assert(key1 != NULL);
   assert(key1_sz == map->left.key_sz);
 
+
+  printf("bi_map_extract_left: about to call assoc_extract\n");
   void* key2 = assoc_extract(&map->left, key1);
   void* key3 = assoc_extract(&map->right, key2);
 
@@ -120,7 +126,9 @@ void* bi_map_extract_right(bi_map_t* map, void* key2, size_t key2_sz, free_fp_ke
   assert(key2_sz == map->right.key_sz);
 
   void* key1 = assoc_extract(&map->right, key2);
+  printf("bi_map_extract_right: assoc_extract removed ev=%p\n",key1);
   void* key3 = assoc_extract(&map->left, key1);
+  printf("bi_map_extract_right: assoc_extract removed fd=%p\n",key2);
 
   int cmp = map->right.comp(key2, key3);
   assert(cmp == 0);

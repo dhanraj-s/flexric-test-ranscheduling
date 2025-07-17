@@ -114,11 +114,11 @@ sm_ctrl_req_data_t ric_on_control_req_mac_sm_ric(sm_ric_t const* sm_ric, void* c
   assert(sm_ric != NULL); 
   assert(ctrl != NULL); 
 
-  printf("ric_on_control_req_mac_sm_ric:\n");
-  printf("\theader dummy: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.mac_ctrl.hdr.dummy);
-  printf("\ttype: %d\n", ((sm_ag_if_wr_t*)ctrl)->type);
-  printf("\tctrl type: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.type);
-  printf("\tmsg action: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.mac_ctrl.msg.action);
+  // printf("ric_on_control_req_mac_sm_ric:\n");
+  // printf("\theader dummy: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.mac_ctrl.hdr.dummy);
+  // printf("\ttype: %d\n", ((sm_ag_if_wr_t*)ctrl)->type);
+  // printf("\tctrl type: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.type);
+  // printf("\tmsg action: %d\n", ((sm_ag_if_wr_t*)ctrl)->ctrl.mac_ctrl.msg.action);
 
 
 
