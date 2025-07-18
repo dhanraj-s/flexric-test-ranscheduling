@@ -550,6 +550,7 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
   // printf("\tmsg action: %d\n", ((sm_ag_if_wr_t*)ctrl_msg)->ctrl.mac_ctrl.msg.action);
 
   // Send the message
+  pthread_mutex_lock(&sync_ui_non_empty_mutex);
   send_control_request(xapp, id, ric_id, ctrl_msg);  
 
   //printf("we are back from send_control_request.\n");
@@ -557,7 +558,7 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
   // Wait for the answer (it will arrive in the event loop)
   printf("send_control_request: trying to get through cond_wait_sync_ui\n");
   
-  pthread_mutex_lock(&sync_ui_non_empty_mutex);
+  //pthread_mutex_lock(&sync_ui_non_empty_mutex);
   sem_post(&sync_ui_non_empty_sem);
   cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
   pthread_mutex_unlock(&sync_ui_non_empty_mutex);
