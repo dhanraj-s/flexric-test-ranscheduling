@@ -23,6 +23,8 @@
 // File modified by https://github.com/dhanraj-s
 // Only some print statements added for debugging.
 
+#include "sync_ui_non_empty_sem.h"
+
 #include "e42_xapp.h"
 
 #include "act_proc.h"
@@ -61,7 +63,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
-
+sem_t sync_ui_non_empty_sem;
+pthread_mutex_t sync_ui_non_empty_mutex;
 
 static inline
 bool net_pkt(const e42_xapp_t* xapp, int fd)
@@ -208,6 +211,9 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
   init_reg_e2_node(&xapp->e2_nodes); 
 
   init_sync_ui(&xapp->sync);
+
+  pthread_mutex_init(&sync_ui_non_empty_mutex, NULL);
+  sem_init(&sync_ui_non_empty_sem, 0, 0);
 
   init_pending_events(&xapp->pending);
 
@@ -361,7 +367,8 @@ void free_e42_xapp(e42_xapp_t* xapp)
 
   int rc = pthread_mutex_destroy(&xapp->conn_mtx);
   assert(rc == 0);
-
+  sem_destroy(&sync_ui_non_empty_sem);
+  pthread_mutex_destroy(&sync_ui_non_empty_mutex);
   free(xapp);
 }
 
@@ -548,8 +555,14 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
   //printf("we are back from send_control_request.\n");
 
   // Wait for the answer (it will arrive in the event loop)
+  printf("send_control_request: trying to get through cond_wait_sync_ui\n");
+  
+  pthread_mutex_lock(&sync_ui_non_empty_mutex);
+  sem_post(&sync_ui_non_empty_sem);
   cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
+  pthread_mutex_unlock(&sync_ui_non_empty_mutex);
 
+  printf("send_control_request: got through cond_wait_sync_ui\n");
   // Answer received
   printf("[xApp]: Successfully received CONTROL-ACK \n");
 

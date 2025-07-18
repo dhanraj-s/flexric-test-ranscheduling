@@ -454,7 +454,7 @@ void assoc_rb_tree_extract_node(assoc_rb_tree_t* tree, assoc_node_t* z_node)
 
 void* assoc_rb_tree_extract(assoc_rb_tree_t* tree, void* key)
 {
-  printf("assoc_rb_tree_extract: HI!\n\n");
+  //printf("assoc_rb_tree_extract: HI!\n\n");
 
   assert(tree != NULL);
   assert(key != NULL);

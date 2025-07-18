@@ -123,4 +123,17 @@ add_executable(xapp_scheduling_copy
                       -ldl
                       )
 
+add_executable(xapp_scheduling_minimal 
+		xapp_scheduling_minimal.c
+                ../../../../src/util/alg_ds/alg/defer.c
+              )
+
+ target_link_libraries(xapp_scheduling_minimal
+                      PUBLIC
+                      e42_xapp
+                      -pthread
+                      -lsctp
+                      -ldl
+                      )
+
                       

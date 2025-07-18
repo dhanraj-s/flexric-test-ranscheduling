@@ -75,7 +75,7 @@ void stop_pending_event(near_ric_t* ric, pending_event_ric_t* ev )
   assert(rc == 0);
   void (*free_pending_event)(void*) = NULL;
   
-  printf("stop_pending_event: bi_map_extract_right called below\n"); 
+  //printf("stop_pending_event: bi_map_extract_right called below\n"); 
   int* fd = bi_map_extract_right(&ric->pending, ev, sizeof(*ev), free_pending_event);
   rc = pthread_mutex_unlock(&ric->pend_mtx);
   assert(rc == 0);
