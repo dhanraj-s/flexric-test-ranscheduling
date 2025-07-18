@@ -24,6 +24,7 @@
 // Only some print statements added for debugging.
 
 #include "sync_ui_non_empty_sem.h"
+#include "control_wait_sem.h"
 
 #include "e42_xapp.h"
 
@@ -65,6 +66,8 @@
 
 sem_t sync_ui_non_empty_sem;
 pthread_mutex_t sync_ui_non_empty_mutex;
+
+sem_t control_wait_sem;
 
 static inline
 bool net_pkt(const e42_xapp_t* xapp, int fd)
@@ -214,6 +217,8 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
 
   pthread_mutex_init(&sync_ui_non_empty_mutex, NULL);
   sem_init(&sync_ui_non_empty_sem, 0, 0);
+
+  sem_init(&control_wait_sem, 0, 0);
 
   init_pending_events(&xapp->pending);
 
@@ -369,6 +374,7 @@ void free_e42_xapp(e42_xapp_t* xapp)
   assert(rc == 0);
   sem_destroy(&sync_ui_non_empty_sem);
   pthread_mutex_destroy(&sync_ui_non_empty_mutex);
+  sem_destroy(&control_wait_sem);
   free(xapp);
 }
 
@@ -487,6 +493,7 @@ void rm_report_sm_sync_xapp(e42_xapp_t* xapp, int ric_req_id)
   }
 
   // Send message
+  sem_wait(&control_wait_sem);
   send_ric_subscription_delete(xapp, ans.val.id);
 
   // Wait for the answer (it will arrive in the event loop)

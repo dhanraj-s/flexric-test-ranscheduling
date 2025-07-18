@@ -19,7 +19,8 @@
  *      contact@openairinterface.org
  */
 
- #include "sync_ui_non_empty_sem.h"
+#include "sync_ui_non_empty_sem.h"
+#include "control_wait_sem.h"
 
 #include <time.h>
 #include "pending_event_xapp_sem.h"
@@ -316,6 +317,7 @@ sm_ind_data_t ind_sm_payload(ric_indication_t const* src)
   signal_sync_ui(&xapp->sync);
   printf("e2ap_handle_control_ack_xapp: successfully signaled sync_ui\n");
 
+  sem_post(&control_wait_sem);
   // If the answer of control_ack is needed 
   // use the field ack->control_outcome 
 
