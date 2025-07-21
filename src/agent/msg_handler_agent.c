@@ -286,8 +286,9 @@ e2ap_msg_t e2ap_handle_control_request_agent(e2_agent_t* ag, const e2ap_msg_t* m
 
 
   uint16_t const ran_func_id = ctrl_req->ric_id.ran_func_id; 
+  //printf("e2ap_handle_control_request_agent: about to get sm.\n");
   sm_agent_t* sm = sm_plugin_ag(&ag->plugin, ran_func_id);
-
+  //printf("e2ap_handle_control_request_agent: got sm. about to dereference.\n");
   sm_ctrl_out_data_t ctrl_ans = sm->proc.on_control(sm, &data);
   defer({ free_sm_ctrl_out_data(&ctrl_ans); } );
 
@@ -304,7 +305,7 @@ e2ap_msg_t e2ap_handle_control_request_agent(e2_agent_t* ag, const e2ap_msg_t* m
   printf("[E2-AGENT]: CONTROL ACKNOWLEDGE tx\n");
   e2ap_msg_t ans = {.type = RIC_CONTROL_ACKNOWLEDGE};
   ans.u_msgs.ric_ctrl_ack = ric_ctrl_ack;
-
+  //printf("e2ap_handle_control_request_agent: here\n");
   return ans; 
 }
 
