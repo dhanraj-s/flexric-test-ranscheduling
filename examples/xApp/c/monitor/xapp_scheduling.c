@@ -41,6 +41,7 @@ void scheduling_control(sm_ag_if_rd_t const *rd) {
     resource_allocation[i].user_id = ind_msg->ue_stats[i].rnti;
     resource_allocation[i].num_rb = 10;
     resource_allocation[i].mcs = 10;
+    printf("frame= %d, slot= %d\n", ind_msg->ue_stats[i].frame, ind_msg->ue_stats[i].slot);
   }
 
   /* Create the control message */

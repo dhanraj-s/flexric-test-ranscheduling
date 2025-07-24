@@ -126,16 +126,16 @@ sm_ctrl_out_data_t on_control_mac_sm_ag(sm_agent_t const* sm_agent, sm_ctrl_req_
 
 //  sm_ag_if_wr_t wr = {.type = CONTROL_SM_AG_IF_WR };
 //  wr.ctrl.type = MAC_CTRL_REQ_V0; 
-  printf("on_control_mac_sm_ag:\n");
-  printf("\tmsg.action: %d\n", msg.action);
-  printf("\tmsg.num_users: %d\n", msg.num_users);
-  printf("\tmsg.resource_alloc:\n");
-  for(int i=0; i<msg.num_users; ++i) {
-    printf("\t\tmcs: %d\n", msg.resource_alloc[i].mcs);
-    printf("\t\tnum_rb: %d\n", msg.resource_alloc[i].num_rb);
-    printf("\t\tuser_id: %d\n", msg.resource_alloc[i].user_id);
-    printf("\n");
-  }
+  // printf("on_control_mac_sm_ag:\n");
+  // printf("\tmsg.action: %d\n", msg.action);
+  // printf("\tmsg.num_users: %d\n", msg.num_users);
+  // printf("\tmsg.resource_alloc:\n");
+  // for(int i=0; i<msg.num_users; ++i) {
+  //   printf("\t\tmcs: %d\n", msg.resource_alloc[i].mcs);
+  //   printf("\t\tnum_rb: %d\n", msg.resource_alloc[i].num_rb);
+  //   printf("\t\tuser_id: %d\n", msg.resource_alloc[i].user_id);
+  //   printf("\n");
+  // }
   mac_ctrl_req_data_t mac_ctrl = {0};
   mac_ctrl.hdr.dummy = hdr.dummy;
   mac_ctrl.msg.action = msg.action;
