@@ -25,7 +25,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 
 byte_array_t mac_enc_event_trigger_plain(mac_event_trigger_t const* event_trigger)
 {
@@ -128,7 +128,7 @@ byte_array_t mac_enc_ctrl_msg_plain(mac_ctrl_msg_t const* ctrl_msg)
 
   memcpy(ba.buf, ctrl_msg, ba.len);*/
 
-  ba.len = 2*sizeof(uint32_t)+//4*sizeof(uint32_t) + 
+  ba.len = 4*sizeof(uint32_t) + 
            (ctrl_msg->num_users * sizeof(user_resource_t));
   ba.buf = calloc(ba.len, sizeof(uint8_t));
   assert(ba.buf != NULL);
@@ -138,13 +138,23 @@ byte_array_t mac_enc_ctrl_msg_plain(mac_ctrl_msg_t const* ctrl_msg)
     int shift = 8 * (3-i);
     ba.buf[i]    = (ctrl_msg->action    >> shift) & mask;
     ba.buf[4+i]  = (ctrl_msg->num_users >> shift) & mask;
-    //ba.buf[8+i]  = (ctrl_msg->frame     >> shift) & mask;
-    //ba.buf[12+i] = (ctrl_msg->slot      >> shift) & mask;
+    ba.buf[8+i]  = (ctrl_msg->frame     >> shift) & mask;
+    ba.buf[12+i] = (ctrl_msg->slot      >> shift) & mask;
   }
+
+  // uint32_t frame = 0, slot = 0;
+  // for(int i=0; i<4; ++i) {
+  //   for(int i=0; i<4; ++i) {
+  //   int shift = 8 * (3-i);    
+  //   frame     |= ( ( (uint32_t) ba.buf[8+i]  )  << shift );
+  //   slot      |= ( ( (uint32_t) ba.buf[12+i] )  << shift );
+  // }
+  // }
+  // printf("mac_enc_ctrl_msg_plain: frame= %d slot= %d\n", frame, slot);
 
   for(int i=0; i<ctrl_msg->num_users; ++i) {
     memcpy(
-           &ba.buf[8+i*(sizeof(user_resource_t))], 
+           &ba.buf[16+i*(sizeof(user_resource_t))], 
            &(ctrl_msg->resource_alloc[i]), 
            sizeof(user_resource_t)
         );

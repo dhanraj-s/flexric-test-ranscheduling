@@ -139,8 +139,9 @@ sm_ctrl_out_data_t on_control_mac_sm_ag(sm_agent_t const* sm_agent, sm_ctrl_req_
   mac_ctrl_req_data_t mac_ctrl = {0};
   mac_ctrl.hdr.dummy = hdr.dummy;
   mac_ctrl.msg.action = msg.action;
-
   mac_ctrl.msg.num_users = msg.num_users;
+  mac_ctrl.msg.frame = msg.frame; 
+  mac_ctrl.msg.slot = msg.slot;
   mac_ctrl.msg.resource_alloc = calloc(msg.num_users, sizeof(user_resource_t));
   for(int i=0; i<msg.num_users; ++i) {
     memcpy(&(mac_ctrl.msg.resource_alloc[i]), &(msg.resource_alloc[i]), sizeof(user_resource_t));
