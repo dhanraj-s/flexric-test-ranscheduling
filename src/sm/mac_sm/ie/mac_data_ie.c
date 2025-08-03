@@ -399,6 +399,9 @@ mac_ctrl_msg_t cp_mac_ctrl_msg(mac_ctrl_msg_t* src) {
     dst.action = src->action;
     dst.num_users = src->num_users;
 
+    //dst.frame = src->frame;
+    //dst.slot = src->slot;
+
     // Allocate memory for the resource alloc array in the destination
     if (src->num_users > 0) {
         dst.resource_alloc = (user_resource_t *)malloc(src->num_users * sizeof(user_resource_t));

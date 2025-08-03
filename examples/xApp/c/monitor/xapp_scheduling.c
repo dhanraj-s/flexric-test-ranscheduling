@@ -41,7 +41,7 @@ void scheduling_control(sm_ag_if_rd_t const *rd) {
     resource_allocation[i].user_id = ind_msg->ue_stats[i].rnti;
     resource_allocation[i].num_rb = 10;
     resource_allocation[i].mcs = 10;
-    printf("frame= %d, slot= %d\n", ind_msg->ue_stats[i].frame, ind_msg->ue_stats[i].slot);
+    printf("rnti= %d frame= %d, slot= %d\n", ind_msg->ue_stats[i].rnti, ind_msg->ue_stats[i].frame, ind_msg->ue_stats[i].slot);
   }
 
   /* Create the control message */
@@ -49,6 +49,8 @@ void scheduling_control(sm_ag_if_rd_t const *rd) {
   wr.type = CONTROL_SM_AG_IF_WR;
   wr.ctrl.type = MAC_CTRL_REQ_V0;
   wr.ctrl.mac_ctrl.hdr.dummy = 1;
+  //wr.ctrl.mac_ctrl.msg.frame = ind_msg->ue_stats[0].frame;
+  //wr.ctrl.mac_ctrl.msg.slot = ind_msg->ue_stats[0].slot;
   wr.ctrl.mac_ctrl.msg.action = 42;
   wr.ctrl.mac_ctrl.msg.num_users = tot_num_ues;
   wr.ctrl.mac_ctrl.msg.resource_alloc = resource_allocation;

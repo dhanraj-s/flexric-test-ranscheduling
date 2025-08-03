@@ -202,6 +202,10 @@ typedef struct {
 typedef struct {
   uint32_t action;
   uint32_t num_users;
+  
+  //uint32_t frame;
+  //uint32_t slot;
+  
   user_resource_t *resource_alloc;
 } mac_ctrl_msg_t;
 

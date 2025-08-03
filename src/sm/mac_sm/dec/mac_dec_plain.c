@@ -99,8 +99,19 @@ mac_ctrl_msg_t mac_dec_ctrl_msg_plain(size_t len, uint8_t const ctrl_msg[len])
   mac_ctrl_msg_t ret;
   //memcpy(&ret, ctrl_msg, len);
 
-  ret.action = ctrl_msg[0] | ctrl_msg[1] | ctrl_msg[2] | ctrl_msg[3];
-  ret.num_users = ctrl_msg[4] | ctrl_msg[5] | ctrl_msg[6] | ctrl_msg[7];
+  ret.action = 0;
+  ret.num_users = 0;
+  //ret.frame = 0;
+  //ret.slot = 0;
+
+  for(int i=0; i<4; ++i) {
+    int shift = 8 * (3-i);
+    ret.action    |= ( ( (uint32_t) ctrl_msg[i]    )  << shift );
+    ret.num_users |= ( ( (uint32_t) ctrl_msg[4+i]  )  << shift );
+    //ret.frame     |= ( ( (uint32_t) ctrl_msg[8+i]  )  << shift );
+    //ret.slot      |= ( ( (uint32_t) ctrl_msg[12+i] )  << shift );
+  }
+
   ret.resource_alloc = calloc(ret.num_users, sizeof(user_resource_t));
   for(int i=0; i<ret.num_users; ++i) {
     memcpy(&(ret.resource_alloc[i]), &ctrl_msg[8+i*(sizeof(user_resource_t))], sizeof(user_resource_t));
